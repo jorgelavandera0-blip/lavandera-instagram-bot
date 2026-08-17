@@ -1,12 +1,12 @@
 name: Publicar en Instagram
 
 # Horarios en UTC. Canarias va +1h en verano (+0h en invierno) — Lavandera Design opera en horario de Canarias.
-# 09:00, 13:00 y 19:00 UTC = 10:00, 14:00 y 20:00 en Canarias (verano).
+# 11:00, 16:00 y 20:00 UTC = 12:00, 17:00 y 21:00 en Canarias (verano).
 on:
   schedule:
-    - cron: '0 9 * * *'
-    - cron: '0 13 * * *'
-    - cron: '0 19 * * *'
+    - cron: '0 11 * * *'
+    - cron: '0 16 * * *'
+    - cron: '0 20 * * *'
   workflow_dispatch:       # permite lanzarlo a mano desde la pestana Actions
     inputs:
       verify_only:
