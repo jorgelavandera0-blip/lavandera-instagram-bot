@@ -1,18 +1,48 @@
 name: Publicar en Instagram
 
-# Horarios en UTC. Canarias va +1h en verano (+0h en invierno) — Lavandera Design opera en horario de Canarias.
-# 11:00, 16:00 y 20:00 UTC = 12:00, 17:00 y 21:00 en Canarias (verano).
+# ---------------------------------------------------------------------------
+# HORARIOS
+# GitHub solo entiende UTC, y Canarias cambia de hora dos veces al ano
+# (UTC+1 en verano, UTC+0 en invierno). Para no tener que tocar nada en
+# octubre y en marzo se programan los DOS horarios posibles de cada pase, y
+# despues el propio job mira la hora real de Canarias y se detiene si no toca.
+# Asi los pases caen siempre a las 12:00, 16:00 y 21:00 hora de Canarias.
+#
+#   Pase 12:00 Canarias -> 11:00 UTC (verano) / 12:00 UTC (invierno)
+#   Pase 16:00 Canarias -> 15:00 UTC (verano) / 16:00 UTC (invierno)
+#   Pase 21:00 Canarias -> 20:00 UTC (verano) / 21:00 UTC (invierno)
+#
+# ORDEN IMPORTANTE: el video se sube a GitHub ANTES de publicarlo, porque
+# Instagram lo descarga desde raw.githubusercontent.com. Si se publicara antes
+# de subirlo, Instagram recibiria un 404.
+# ---------------------------------------------------------------------------
 on:
   schedule:
     - cron: '0 11 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 15 * * *'
     - cron: '0 16 * * *'
     - cron: '0 20 * * *'
-  workflow_dispatch:       # permite lanzarlo a mano desde la pestana Actions
+    - cron: '0 21 * * *'
+  workflow_dispatch:
     inputs:
       verify_only:
         description: 'Solo comprobar el token (sin publicar)'
         type: boolean
         default: false
+      slot:
+        description: 'Pase a generar cuando se lanza a mano'
+        type: choice
+        options: ['12h', '16h', '21h']
+        default: '12h'
+      forzar:
+        description: 'Generar un video aunque ya haya cola'
+        type: boolean
+        default: false
+
+concurrency:
+  group: publicar-instagram
+  cancel-in-progress: false
 
 jobs:
   publicar:
@@ -23,27 +53,108 @@ jobs:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
 
+      - name: Comprobar si toca pase (hora real de Canarias)
+        id: pase
+        env:
+          ES_MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
+          SLOT_MANUAL: ${{ github.event.inputs.slot }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import os
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+
+          manual = os.environ.get("ES_MANUAL") == "true"
+          ahora = datetime.now(ZoneInfo("Atlantic/Canary"))
+          slot = {12: "12h", 16: "16h", 21: "21h"}.get(ahora.hour)
+
+          if manual:
+              print("seguir=si")
+              print(f"slot={os.environ.get('SLOT_MANUAL') or '12h'}")
+              print("motivo=lanzado a mano")
+          elif slot:
+              print("seguir=si")
+              print(f"slot={slot}")
+              print(f"motivo=toca el pase de las {ahora:%H:%M} de Canarias")
+          else:
+              print("seguir=no")
+              print("slot=")
+              print(f"motivo=en Canarias son las {ahora:%H:%M}; este disparo no toca")
+          PY
+
+      - name: Decision
+        run: echo "${{ steps.pase.outputs.motivo }}"
+
       - name: Preparar Python
+        if: steps.pase.outputs.seguir == 'si'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Publicar (o verificar)
+      - name: Instalar dependencias
+        if: steps.pase.outputs.seguir == 'si'
+        run: |
+          python -m pip install --quiet --upgrade pip
+          python -m pip install --quiet pillow
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          fi
+          ffmpeg -version | head -1
+
+      # --- Solo verificar el token ------------------------------------------
+      - name: Comprobar el token y salir
+        if: ${{ steps.pase.outputs.seguir == 'si' && github.event.inputs.verify_only == 'true' }}
         env:
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python publish.py --verify
+
+      # --- Ciclo normal -----------------------------------------------------
+      - name: Generar el video del pase si la cola esta vacia
+        if: ${{ steps.pase.outputs.seguir == 'si' && github.event.inputs.verify_only != 'true' }}
         run: |
-          if [ "${{ github.event.inputs.verify_only }}" = "true" ]; then
-            python publish.py --verify
+          if [ "${{ github.event.inputs.forzar }}" = "true" ]; then
+            python encolar.py --slot "${{ steps.pase.outputs.slot }}" --forzar
           else
-            python publish.py
+            python encolar.py --slot "${{ steps.pase.outputs.slot }}"
           fi
 
-      - name: Guardar el estado de la cola
-        if: ${{ github.event.inputs.verify_only != 'true' }}
+      - name: Subir el video a GitHub ANTES de publicar
+        id: subida
+        if: ${{ steps.pase.outputs.seguir == 'si' && github.event.inputs.verify_only != 'true' }}
         run: |
           git config user.name "lavandera-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add posts.json
-          git commit -m "Marcar video como publicado" || echo "Sin cambios que guardar"
+          git add -A posts.json videos
+          if git diff --cached --quiet; then
+            echo "Sin cambios que subir (la cola ya tenia video)."
+          else
+            git commit -m "Pase ${{ steps.pase.outputs.slot }}: video listo para publicar"
+            git pull --rebase --autostash || true
+            git push
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Esperar a que GitHub sirva el video
+        if: ${{ steps.pase.outputs.seguir == 'si' && github.event.inputs.verify_only != 'true' }}
+        env:
+          VIDEO_REF: ${{ steps.subida.outputs.sha }}
+        run: python comprobar_url.py
+
+      - name: Publicar en Instagram
+        if: ${{ steps.pase.outputs.seguir == 'si' && github.event.inputs.verify_only != 'true' }}
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          VIDEO_REF: ${{ steps.subida.outputs.sha }}
+        run: python publish.py
+
+      - name: Marcar el video como publicado
+        if: ${{ steps.pase.outputs.seguir == 'si' && github.event.inputs.verify_only != 'true' }}
+        run: |
+          git config user.name "lavandera-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add -A posts.json videos
+          git commit -m "Pase ${{ steps.pase.outputs.slot }}: marcado como publicado" || echo "Sin cambios"
+          git pull --rebase --autostash || true
           git push
