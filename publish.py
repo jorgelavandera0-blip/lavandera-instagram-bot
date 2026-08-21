@@ -15,6 +15,9 @@ IG_USER_ID = os.environ.get("IG_USER_ID", "").strip()
 IG_TOKEN = os.environ.get("IG_TOKEN", "").strip()
 REPO = os.environ.get("GITHUB_REPOSITORY", "").strip()
 BRANCH = os.environ.get("GITHUB_REF_NAME", "main").strip() or "main"
+# Si el workflow nos pasa el SHA del commit recien subido usamos ese, porque la
+# URL por rama puede tardar en refrescarse en la CDN de GitHub.
+VIDEO_REF = os.environ.get("VIDEO_REF", "").strip() or BRANCH
 
 
 def _request(method, path, params):
@@ -34,7 +37,8 @@ def _request(method, path, params):
 
 
 def verify_token():
-    me = _request("GET", "me", {"fields": "id,username,account_type", "access_token": IG_TOKEN})
+    me = _request("GET", "me", {"fields": "id,username,account_type",
+                                "access_token": IG_TOKEN})
     print(f"[OK] Token valido. Cuenta: @{me.get('username')} (id {me.get('id')})")
     return me
 
@@ -63,7 +67,18 @@ def publish_next():
     post = pending[0]
     if not REPO:
         raise SystemExit("[ERROR] No detecto el repositorio.")
-    video_url = f"https://raw.githubusercontent.com/{REPO}/{BRANCH}/videos/{post['file']}"
+
+    # Si el archivo ya no esta en el repo (limpieza antigua, borrado a mano),
+    # no tiene sentido reintentarlo cada pase: se marca y se sigue.
+    ruta_local = os.path.join("videos", post["file"])
+    if not os.path.exists(ruta_local):
+        print(f"[AVISO] {ruta_local} no existe en el repositorio. "
+              f"Lo marco como hecho para no bloquear la cola.")
+        post["posted"] = True
+        save_posts(posts)
+        return
+
+    video_url = f"https://raw.githubusercontent.com/{REPO}/{VIDEO_REF}/videos/{post['file']}"
     caption = post.get("caption", "")
     print(f"[1/3] Preparando: {post['file']}")
     print(f"      URL: {video_url}")
@@ -78,7 +93,8 @@ def publish_next():
         raise SystemExit(f"[ERROR] No se creo el contenedor: {container}")
     print(f"[2/3] Contenedor {cid}. Esperando a que Instagram procese el video...")
     for intento in range(30):
-        estado = _request("GET", cid, {"fields": "status_code", "access_token": IG_TOKEN})
+        estado = _request("GET", cid, {"fields": "status_code",
+                                       "access_token": IG_TOKEN})
         sc = estado.get("status_code")
         if sc == "FINISHED":
             print("      Video procesado.")
