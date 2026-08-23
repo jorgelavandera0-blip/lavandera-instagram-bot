@@ -26,6 +26,8 @@ from datetime import date, datetime
 
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
+import musica
+
 # --------------------------------------------------------------------------
 # Constantes de marca
 # --------------------------------------------------------------------------
@@ -707,9 +709,14 @@ def render(proyecto, formato, gancho, cta, remate, salida, tmp,
     if fc.endswith(f"[{etiqueta}]") is False:
         fc += f"[{etiqueta}]"
 
+    # Banda sonora ORIGINAL, sintetizada aqui mismo. No es de ningun banco de
+    # sonido: no hay licencia de terceros ni riesgo de que Instagram la silencie.
+    p_audio = os.path.join(tmp, "musica.wav")
+    semilla = next((k for k, pr in enumerate(PROYECTOS)
+                    if pr["id"] == proyecto["id"]), 0)
+    musica.guardar_wav(p_audio, musica.componer(semilla, tipo, DUR, T_FINAL_INI))
     i_audio = idx0 + len(capas)
-    entradas += ["-f", "lavfi", "-i",
-                 "anullsrc=channel_layout=stereo:sample_rate=44100"]
+    entradas += ["-i", p_audio]
 
     cmd = (["ffmpeg", "-y", "-loglevel", "error"] + entradas +
            ["-filter_complex", fc,
