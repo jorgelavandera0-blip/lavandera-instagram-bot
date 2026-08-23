@@ -125,11 +125,11 @@ jobs:
         run: |
           git config user.name "lavandera-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add -A posts.json videos
+          git add -A posts.json videos tiktok.json tiktok fuentes
           if git diff --cached --quiet; then
             echo "Sin cambios que subir (la cola ya tenia video)."
           else
-            git commit -m "Pase ${{ steps.pase.outputs.slot }}: video listo para publicar"
+            git commit -m "Pase ${{ steps.pase.outputs.slot }}: videos de Instagram y TikTok listos"
             git pull --rebase --autostash || true
             git push
           fi
@@ -154,7 +154,7 @@ jobs:
         run: |
           git config user.name "lavandera-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add -A posts.json videos
+          git add -A posts.json videos tiktok.json tiktok fuentes
           git commit -m "Pase ${{ steps.pase.outputs.slot }}: marcado como publicado" || echo "Sin cambios"
           git pull --rebase --autostash || true
           git push
