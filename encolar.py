@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-encolar.py - Rellena la cola de publicacion.
+encolar.py - Prepara los dos videos de cada pase.
 
-Si posts.json no tiene ningun video pendiente, genera uno nuevo con generar.py
-y lo anade a la cola. Ademas limpia del repositorio los .mp4 ya publicados
-antiguos para que el repo no crezca sin control.
+1. INSTAGRAM: si posts.json no tiene ningun video pendiente, genera uno nuevo
+   y lo anade a la cola para que publish.py lo publique.
+2. TIKTOK: genera SIEMPRE un segundo video del pase, de otro negocio y con otro
+   gancho, y lo apunta en tiktok.json. Ese no se publica solo: Jorge se lo
+   descarga y lo sube a mano a TikTok.
+
+Ademas limpia del repositorio los .mp4 antiguos para que no crezca sin control.
 
 Uso:
     python encolar.py --slot 16h
-    python encolar.py --slot 12h --forzar     (encola aunque ya haya cola)
+    python encolar.py --slot 12h --forzar     (regenera aunque ya haya cola)
 """
 
 import argparse
@@ -17,42 +21,108 @@ import json
 import os
 import subprocess
 import sys
+from datetime import date
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
+FUENTES = os.path.join(AQUI, "fuentes")
 POSTS = os.path.join(AQUI, "posts.json")
+TIKTOK_JSON = os.path.join(AQUI, "tiktok.json")
 VIDEOS = os.path.join(AQUI, "videos")
+TIKTOK_DIR = os.path.join(AQUI, "tiktok")
 
-# Cuantos videos ya publicados conservamos en el repo antes de borrar los .mp4.
+# Cuantos videos conservamos en el repo antes de borrar los .mp4 mas antiguos.
 CONSERVAR = 6
+CONSERVAR_TIKTOK = 6
 
 
-def cargar():
-    if not os.path.exists(POSTS):
-        return []
-    with open(POSTS, "r", encoding="utf-8") as f:
-        return json.load(f)
+def cargar(ruta, por_defecto):
+    if not os.path.exists(ruta):
+        return por_defecto
+    try:
+        with open(ruta, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except json.JSONDecodeError:
+        return por_defecto
 
 
-def guardar(posts):
-    with open(POSTS, "w", encoding="utf-8") as f:
-        json.dump(posts, f, indent=2, ensure_ascii=False)
+def guardar(ruta, datos):
+    with open(ruta, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=2, ensure_ascii=False)
 
 
-def limpiar_antiguos(posts):
-    """Borra el .mp4 de los publicados mas antiguos. La entrada se conserva
-    en posts.json para no repetir contenido; solo desaparece el archivo."""
-    publicados = [p for p in posts if p.get("posted")]
-    if len(publicados) <= CONSERVAR:
+def generar(slot, variante, destino):
+    """Llama a generar.py y devuelve el dict con file y caption."""
+    proc = subprocess.run(
+        [sys.executable, os.path.join(AQUI, "generar.py"),
+         "--slot", slot, "--variante", variante, "--out", destino, "--json"],
+        capture_output=True, text=True)
+    if proc.returncode != 0:
+        sys.stdout.write(proc.stdout)
+        sys.stderr.write(proc.stderr)
+        raise SystemExit(f"[ERROR] generar.py fallo con la variante {variante}.")
+
+    lineas = [l for l in proc.stdout.strip().splitlines() if l.startswith("{")]
+    if not lineas:
+        sys.stdout.write(proc.stdout)
+        raise SystemExit(f"[ERROR] generar.py no devolvio JSON ({variante}).")
+
+    entrada = json.loads(lineas[-1])
+    ruta = os.path.join(destino, entrada["file"])
+    if not os.path.exists(ruta):
+        raise SystemExit(f"[ERROR] El video no existe: {ruta}")
+
+    tam = os.path.getsize(ruta) / 1_000_000
+    if tam > 90:
+        raise SystemExit(f"[ERROR] {entrada['file']} pesa {tam:.1f} MB; GitHub no "
+                         f"admite archivos de mas de 100 MB.")
+    entrada["_mb"] = round(tam, 1)
+    return entrada
+
+
+def limpiar(lista, carpeta, conservar, clave_hecho=None):
+    """Borra los .mp4 mas antiguos. Las entradas se conservan en el JSON para
+    no repetir contenido; lo que desaparece es solo el archivo."""
+    if clave_hecho:
+        candidatos = [e for e in lista if e.get(clave_hecho)]
+    else:
+        candidatos = list(lista)
+    if len(candidatos) <= conservar:
         return 0
     borrados = 0
-    for p in publicados[:-CONSERVAR]:
-        ruta = os.path.join(VIDEOS, p["file"])
+    for e in candidatos[:-conservar]:
+        ruta = os.path.join(carpeta, e["file"])
         if os.path.exists(ruta):
             os.remove(ruta)
             borrados += 1
     if borrados:
-        print(f"[LIMPIEZA] {borrados} mp4 antiguos eliminados del repositorio.")
+        print(f"[LIMPIEZA] {borrados} mp4 antiguos eliminados de {os.path.basename(carpeta)}/")
     return borrados
+
+
+def purgar_fuentes():
+    """Borra de fuentes/ cualquier .mp4 que ya no use ningun proyecto.
+
+    Sirve para que el metraje retirado (por ejemplo, marcas de las que no
+    tenemos permiso) desaparezca del repositorio solo, sin borrarlo a mano.
+    """
+    if not os.path.isdir(FUENTES):
+        return 0
+    sys.path.insert(0, AQUI)
+    import generar
+    usados = set()
+    for pr in generar.PROYECTOS:
+        for k in ("movil", "escritorio"):
+            if pr.get(k):
+                usados.add(pr[k])
+    borrados = []
+    for f in sorted(os.listdir(FUENTES)):
+        if f.lower().endswith(".mp4") and f not in usados:
+            os.remove(os.path.join(FUENTES, f))
+            borrados.append(f)
+    if borrados:
+        print(f"[LIMPIEZA] {len(borrados)} metrajes retirados de fuentes/: "
+              + ", ".join(borrados[:4]) + (" ..." if len(borrados) > 4 else ""))
+    return len(borrados)
 
 
 def main():
@@ -61,45 +131,46 @@ def main():
     ap.add_argument("--forzar", action="store_true")
     args = ap.parse_args()
 
-    posts = cargar()
+    os.makedirs(VIDEOS, exist_ok=True)
+    os.makedirs(TIKTOK_DIR, exist_ok=True)
+    hoy = date.today().isoformat()
+
+    # Lo primero: quitar metraje que ya no se usa.
+    purgar_fuentes()
+
+    # ---------------- INSTAGRAM ----------------
+    posts = cargar(POSTS, [])
     pendientes = [p for p in posts if not p.get("posted")]
 
     if pendientes and not args.forzar:
-        print(f"[INFO] Ya hay {len(pendientes)} video(s) en cola. No genero nada.")
-        limpiar_antiguos(posts)
-        guardar(posts)
-        return
+        print(f"[IG] Ya hay {len(pendientes)} video(s) en cola. No genero otro.")
+    else:
+        print(f"[IG] Generando el reel del pase {args.slot}...")
+        e = generar(args.slot, "instagram", VIDEOS)
+        mb = e.pop("_mb")
+        posts.append(e)
+        print(f"[IG] Encolado: {e['file']} ({mb} MB)")
 
-    print(f"[1/2] Generando el reel del pase {args.slot}...")
-    proc = subprocess.run(
-        [sys.executable, os.path.join(AQUI, "generar.py"),
-         "--slot", args.slot, "--out", VIDEOS, "--json"],
-        capture_output=True, text=True)
+    limpiar(posts, VIDEOS, CONSERVAR, clave_hecho="posted")
+    guardar(POSTS, posts)
 
-    if proc.returncode != 0:
-        sys.stdout.write(proc.stdout)
-        sys.stderr.write(proc.stderr)
-        raise SystemExit("[ERROR] generar.py no pudo crear el video.")
+    # ---------------- TIKTOK ----------------
+    # Siempre uno nuevo por pase, de otro negocio, para subirlo a mano.
+    tiktoks = cargar(TIKTOK_JSON, [])
+    ya = [t for t in tiktoks if t.get("fecha") == hoy and t.get("slot") == args.slot]
 
-    linea = [l for l in proc.stdout.strip().splitlines() if l.startswith("{")]
-    if not linea:
-        sys.stdout.write(proc.stdout)
-        raise SystemExit("[ERROR] generar.py no devolvio JSON.")
+    if ya and not args.forzar:
+        print(f"[TT] El video de TikTok del pase {args.slot} de hoy ya existe: "
+              f"{ya[-1]['file']}")
+    else:
+        print(f"[TT] Generando el video de TikTok del pase {args.slot}...")
+        e = generar(args.slot, "tiktok", TIKTOK_DIR)
+        mb = e.pop("_mb")
+        tiktoks.append(e)
+        print(f"[TT] Listo para descargar: {e['file']} ({mb} MB) · {e.get('negocio')}")
 
-    entrada = json.loads(linea[-1])
-    ruta = os.path.join(VIDEOS, entrada["file"])
-    if not os.path.exists(ruta):
-        raise SystemExit(f"[ERROR] El video no existe: {ruta}")
-
-    tam = os.path.getsize(ruta) / 1_000_000
-    if tam > 90:
-        raise SystemExit(f"[ERROR] El video pesa {tam:.1f} MB; GitHub no admite "
-                         f"archivos de mas de 100 MB.")
-
-    posts.append(entrada)
-    limpiar_antiguos(posts)
-    guardar(posts)
-    print(f"[2/2] Encolado: {entrada['file']} ({tam:.1f} MB)")
+    limpiar(tiktoks, TIKTOK_DIR, CONSERVAR_TIKTOK)
+    guardar(TIKTOK_JSON, tiktoks)
 
 
 if __name__ == "__main__":

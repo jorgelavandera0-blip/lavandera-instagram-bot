@@ -59,44 +59,92 @@ CAP_H = 692            # alto de la captura ya recortada
 # --------------------------------------------------------------------------
 # Banco de contenido
 # --------------------------------------------------------------------------
-# tipo: "cliente" = encargo real de un cliente.
-#       "demo"    = proyecto propio de muestra (marca y textos inventados).
-# El tipo se ROTULA en pantalla. Nunca presentamos una demo como cliente real.
+# Las 12 son maquetas PROPIAS: marca, textos e imagenes inventados por
+# nosotros, con fotos de licencia libre. Ninguna pertenece a un negocio real,
+# asi que ninguna puede rotularse como cliente. El tipo se rotula en pantalla.
 PROYECTOS = [
     {
-        "id": "ocean-fisher", "nombre": "The Ocean's Fisher",
-        "sector": "pesca deportiva", "tipo": "cliente", "acento": (56, 189, 248),
-        "movil": None, "escritorio": "Ocean-Fisher-escritorio.mp4",
+        "id": "marea-viva", "nombre": "Marea Viva",
+        "sector": "charter náutico", "tipo": "demo", "acento": (79, 195, 232),
+        "movil": "01-charter-nautico-marea-viva-movil.mp4",
+        "escritorio": "01-charter-nautico-marea-viva-escritorio.mp4",
         "url": DOMINIO,
     },
     {
-        "id": "motion-rent", "nombre": "Motion Rent",
-        "sector": "alquiler de vehículos", "tipo": "cliente", "acento": (255, 138, 61),
-        "movil": None, "escritorio": "Motion-Rent-escritorio.mp4",
+        "id": "casa-timanfaya", "nombre": "Casa Timanfaya",
+        "sector": "villa vacacional", "tipo": "demo", "acento": (194, 114, 74),
+        "movil": "02-villa-vacacional-casa-timanfaya-movil.mp4",
+        "escritorio": "02-villa-vacacional-casa-timanfaya-escritorio.mp4",
         "url": DOMINIO,
     },
     {
-        "id": "villa-sol-y-luna", "nombre": "Villa Sol y Luna",
-        "sector": "alojamiento", "tipo": "cliente", "acento": (233, 184, 114),
-        "movil": None, "escritorio": "Villa-Sol-y-Luna-escritorio.mp4",
+        "id": "salitre", "nombre": "Salitre",
+        "sector": "restaurante", "tipo": "demo", "acento": (224, 160, 48),
+        "movil": "03-restaurante-salitre-movil.mp4",
+        "escritorio": "03-restaurante-salitre-escritorio.mp4",
         "url": DOMINIO,
     },
     {
-        "id": "anfora-charter", "nombre": "Ánfora Charter",
-        "sector": "charter náutico", "tipo": "cliente", "acento": (125, 211, 252),
-        "movil": "anfora-charter-movil.mp4", "escritorio": "anfora-charter-escritorio.mp4",
+        "id": "vega-motor", "nombre": "Vega Motor",
+        "sector": "concesionario", "tipo": "demo", "acento": (217, 84, 31),
+        "movil": "04-concesionario-vega-motor-movil.mp4",
+        "escritorio": "04-concesionario-vega-motor-escritorio.mp4",
         "url": DOMINIO,
     },
     {
-        "id": "ebano-motors", "nombre": "Ébano Motors",
-        "sector": "concesionario", "tipo": "cliente", "acento": (212, 175, 111),
-        "movil": "ebano-motors-movil.mp4", "escritorio": "ebano-motors-escritorio.mp4",
+        "id": "clinica-aran", "nombre": "Clínica Arán",
+        "sector": "medicina estética", "tipo": "demo", "acento": (63, 148, 110),
+        "movil": "05-clinica-estetica-aran-movil.mp4",
+        "escritorio": "05-clinica-estetica-aran-escritorio.mp4",
         "url": DOMINIO,
     },
     {
-        "id": "solera-retreats", "nombre": "Solera Retreats",
-        "sector": "retiros y bienestar", "tipo": "demo", "acento": (196, 168, 122),
-        "movil": "solera-retreats-movil.mp4", "escritorio": "solera-retreats-escritorio.mp4",
+        "id": "malvasia-alta", "nombre": "Bodega Malvasía Alta",
+        "sector": "bodega", "tipo": "demo", "acento": (201, 162, 75),
+        "movil": "06-bodega-malvasia-alta-movil.mp4",
+        "escritorio": "06-bodega-malvasia-alta-escritorio.mp4",
+        "url": DOMINIO,
+    },
+    {
+        "id": "casona-del-risco", "nombre": "Casona del Risco",
+        "sector": "hotel rural", "tipo": "demo", "acento": (200, 155, 90),
+        "movil": "07-hotel-rural-casona-del-risco-movil.mp4",
+        "escritorio": "07-hotel-rural-casona-del-risco-escritorio.mp4",
+        "url": DOMINIO,
+    },
+    {
+        "id": "taller-tosca", "nombre": "Taller Tosca",
+        "sector": "reformas e interiorismo", "tipo": "demo", "acento": (227, 181, 5),
+        "movil": "08-reformas-taller-tosca-movil.mp4",
+        "escritorio": "08-reformas-taller-tosca-escritorio.mp4",
+        "url": DOMINIO,
+    },
+    {
+        "id": "cardon", "nombre": "Cardón Propiedades",
+        "sector": "inmobiliaria", "tipo": "demo", "acento": (143, 179, 160),
+        "movil": "09-inmobiliaria-cardon-propiedades-movil.mp4",
+        "escritorio": "09-inmobiliaria-cardon-propiedades-escritorio.mp4",
+        "url": DOMINIO,
+    },
+    {
+        "id": "basalto", "nombre": "Basalto Performance",
+        "sector": "centro de rendimiento", "tipo": "demo", "acento": (180, 255, 58),
+        "movil": "10-centro-rendimiento-basalto-movil.mp4",
+        "escritorio": "10-centro-rendimiento-basalto-escritorio.mp4",
+        "url": DOMINIO,
+    },
+    {
+        "id": "bruma-banos", "nombre": "Bruma Baños",
+        "sector": "spa y baños", "tipo": "demo", "acento": (110, 140, 160),
+        "movil": "11-spa-bruma-banos-movil.mp4",
+        "escritorio": "11-spa-bruma-banos-escritorio.mp4",
+        "url": DOMINIO,
+    },
+    {
+        "id": "corriente-norte", "nombre": "Corriente Norte",
+        "sector": "escuela de surf", "tipo": "demo", "acento": (255, 107, 44),
+        "movil": "12-escuela-surf-corriente-norte-movil.mp4",
+        "escritorio": "12-escuela-surf-corriente-norte-escritorio.mp4",
         "url": DOMINIO,
     },
 ]
@@ -126,6 +174,11 @@ REMATES = [
     "Respondemos en menos de 24 h",
     "Webs a medida para negocios de Canarias",
 ]
+
+HASHTAGS_TIKTOK = ("#diseñoweb #paginaweb #negociolocal #canarias #emprendedores "
+                   "#pymes #webdesign #marketingdigital #tenerife #laspalmas "
+                   "#lanzarote #fuerteventura #emprenderespaña #negocios #seo "
+                   "#parati #fyp")
 
 HASHTAGS = ("#diseñoweb #paginasweb #diseñowebprofesional #webdesign #negociolocal "
             "#marketingdigital #emprendedores #tiendaonline #branding #canarias "
@@ -382,7 +435,7 @@ def borde_captura(proyecto):
 SLOTS = ["12h", "16h", "21h"]
 
 
-def elegir(fecha, slot):
+def elegir(fecha, slot, variante="instagram"):
     """Rotacion determinista: mismo dia+pase => mismo contenido reproducible.
 
     Reglas que cumple:
@@ -395,24 +448,39 @@ def elegir(fecha, slot):
     si = SLOTS.index(slot) if slot in SLOTS else 0
     npro = len(PROYECTOS)
 
+    # Desplazamiento de la variante. Con 6 negocios, sumar 3 garantiza que el
+    # video de TikTok NUNCA cae en el mismo negocio que el de Instagram.
+    dv = 3 if variante == "tiktok" else 0
+
     # (dia + 2*si) mod 6 -> dentro de un dia da 3 indices distintos (0,2,4 de
     # separacion) y a lo largo de los dias recorre los 6 negocios por igual.
-    proyecto = PROYECTOS[(dia + 2 * si) % npro]
+    proyecto = PROYECTOS[(dia + 2 * si + dv) % npro]
 
     # Vertical siempre que ese negocio tenga metraje vertical; si no, escritorio.
-    if proyecto["movil"] and (dia + si) % 2 == 0:
+    par = (dia + si + (1 if variante == "tiktok" else 0)) % 2
+    if proyecto["movil"] and par == 0:
         formato = "movil"
     else:
         formato = "escritorio"
 
-    gancho = GANCHOS[(dia * 3 + si * 5) % len(GANCHOS)]
-    cta = CTAS[(dia * 3 + si * 2) % len(CTAS)]
-    remate = REMATES[(dia * 5 + si * 3) % len(REMATES)]
-    arranque = ((dia + si) % 3) * 2.0
-    return proyecto, formato, gancho, cta, remate, arranque
+    dg = 4 if variante == "tiktok" else 0
+    dc = 2 if variante == "tiktok" else 0
+    gancho = GANCHOS[(dia * 3 + si * 5 + dg) % len(GANCHOS)]
+    cta = CTAS[(dia * 3 + si * 2 + dc) % len(CTAS)]
+    remate = REMATES[(dia * 5 + si * 3 + dc) % len(REMATES)]
+    arranque = ((dia + si + dv) % 3) * 2.0
+
+    # Tipo de anuncio. El desplazamiento de 2 hace que el de TikTok NUNCA
+    # tenga la misma forma que el de Instagram del mismo pase, y dentro de un
+    # mismo dia los tres pases tampoco se repiten.
+    dt = 2 if variante == "tiktok" else 0
+    tipo = TIPOS[(dia * 5 + si * 3 + dt) % len(TIPOS)]
+    dato = DATOS[(dia * 3 + si + dt) % len(DATOS)]
+    serie = SERIES[(dia * 7 + si * 2 + dt) % len(SERIES)]
+    return proyecto, formato, gancho, cta, remate, arranque, tipo, dato, serie
 
 
-def construir_caption(proyecto, cta, remate):
+def construir_caption(proyecto, cta, remate, variante="instagram"):
     if proyecto["tipo"] == "cliente":
         linea_proy = (f"{proyecto['nombre']} ({proyecto['sector']}) es un encargo real "
                       f"diseñado y desarrollado por nosotros.")
@@ -429,12 +497,109 @@ def construir_caption(proyecto, cta, remate):
         f"{remate.rstrip(chr(46))}.\n\n"
         f"Entra en {DOMINIO} y te decimos gratis qué le falta a tu web. "
         f"El enlace también está en la bio.\n\n"
-        f"{HASHTAGS}"
+        f"{HASHTAGS_TIKTOK if variante == 'tiktok' else HASHTAGS}"
     )
 
 
 # --------------------------------------------------------------------------
-# Render
+
+# --------------------------------------------------------------------------
+# Tipos de anuncio
+# --------------------------------------------------------------------------
+# Cuatro maneras distintas de abrir el mismo metraje. Rotan para que dos
+# anuncios seguidos nunca tengan la misma forma, no solo distinto negocio.
+TIPOS = ["escaparate", "dato", "ficha", "lista"]
+
+# Datos NUESTROS, comprobables en lavanderadesign.com. No usamos estadisticas
+# de terceros: si lo decimos en un anuncio, tiene que ser algo que cumplimos.
+DATOS = [
+    ("24 h", "es lo que tardamos en contestarte"),
+    ("0 €", "cuesta que te digamos qué falla en tu web"),
+    ("3 días", "es nuestro plazo de entrega más corto"),
+    ("12", "sectores distintos diseñados desde cero"),
+]
+
+SERIES = [
+    ["Sin plantillas", "Diseño propio", "Tuya de verdad"],
+    ["Se ve bien en el móvil", "Carga rápido", "Y además vende"],
+    ["Web a medida", "Tienda y reservas", "SEO y automatización"],
+    ["Lo diseñamos", "Lo programamos", "Lo mantenemos"],
+]
+
+
+def capa_dato(dato, proyecto):
+    """Apertura con una cifra grande a pantalla completa."""
+    cifra, linea = dato
+    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    fondo = Image.new("RGBA", (W, H), FONDO + (250,))
+    capa.paste(fondo, (0, 0), fondo)
+    d = ImageDraw.Draw(capa)
+    ac = proyecto["acento"]
+
+    fe = fuente(F_REG, 34)
+    d.text((72, 300), "LAVANDERA DESIGN  ·  CANARIAS", font=fe, fill=(255, 255, 255, 170))
+
+    fc = fuente(F_BOLD, 300)
+    d.text((66, 380), cifra, font=fc, fill=ac)
+
+    fl = fuente(F_REG, 62)
+    y = 760
+    for ln in envolver(d, linea, fl, W - 150):
+        d.text((72, y), ln, font=fl, fill=TINTA)
+        y += 78
+    d.rounded_rectangle([72, y + 30, 204, y + 42], radius=6, fill=ac)
+    return capa
+
+
+def capa_ficha(proyecto):
+    """Apertura tipo portafolio: sector y aviso de maqueta."""
+    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    fondo = Image.new("RGBA", (W, H), FONDO + (248,))
+    capa.paste(fondo, (0, 0), fondo)
+    d = ImageDraw.Draw(capa)
+    ac = proyecto["acento"]
+
+    fe = fuente(F_REG, 36)
+    et = proyecto["sector"].upper()
+    ew = d.textlength(et, font=fe)
+    d.text(((W - ew) / 2, 640), et, font=fe, fill=ac + (230,))
+
+    fn = fuente(F_BOLD, 104)
+    for i, ln in enumerate(envolver(d, proyecto["nombre"], fn, W - 160)):
+        lw = d.textlength(ln, font=fn)
+        d.text(((W - lw) / 2, 720 + i * 118), ln, font=fn, fill=TINTA)
+
+    d.rounded_rectangle([W // 2 - 70, 960, W // 2 + 70, 968], radius=4, fill=ac)
+
+    fs = fuente(F_REG, 40)
+    sub = "Diseñada y desarrollada por nosotros"
+    sw = d.textlength(sub, font=fs)
+    d.text(((W - sw) / 2, 1010), sub, font=fs, fill=TENUE)
+
+    fa = fuente(F_REG, 30)
+    av = "MAQUETA DE MUESTRA · NO ES UN NEGOCIO REAL"
+    aw = d.textlength(av, font=fa)
+    d.text(((W - aw) / 2, 1110), av, font=fa, fill=(255, 255, 255, 130))
+    return capa
+
+
+def capa_frase(texto, proyecto):
+    """Banda inferior con una frase corta, para el tipo 'lista'."""
+    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    f = fuente(F_BOLD, 76)
+    lineas = envolver(d, texto, f, W - 200)
+    alto = 60 + len(lineas) * 92
+    y0 = H - 250 - alto - 40
+    d.rounded_rectangle([56, y0, W - 56, y0 + alto], radius=34, fill=(9, 11, 15, 224))
+    d.rounded_rectangle([56, y0, 68, y0 + alto], radius=6, fill=proyecto["acento"])
+    y = y0 + 30
+    for ln in lineas:
+        d.text((104, y), ln, font=f, fill=TINTA)
+        y += 92
+    return capa
+
+
 # --------------------------------------------------------------------------
 def duracion_de(path):
     out = subprocess.run(
@@ -447,19 +612,13 @@ def duracion_de(path):
         return 0.0
 
 
-def render(proyecto, formato, gancho, cta, remate, salida, tmp, arranque=0.0):
+def render(proyecto, formato, gancho, cta, remate, salida, tmp,
+           arranque=0.0, tipo="escaparate", dato=None, serie=None):
     os.makedirs(tmp, exist_ok=True)
     archivo = proyecto[formato]
     src = os.path.join(FUENTES_DIR, archivo)
     if not os.path.exists(src):
         raise SystemExit(f"[ERROR] No encuentro el metraje: {src}")
-
-    p_gancho = os.path.join(tmp, "gancho.png")
-    p_marca = os.path.join(tmp, "marca.png")
-    p_cierre = os.path.join(tmp, "cierre.png")
-    capa_gancho(gancho, proyecto).save(p_gancho)
-    capa_marca(proyecto, formato).save(p_marca)
-    capa_cierre(proyecto, cta, remate).save(p_cierre)
 
     # Solo arrancamos mas adelante si al metraje le sobra metraje de verdad.
     sobra = duracion_de(src) - DUR
@@ -488,36 +647,73 @@ def render(proyecto, formato, gancho, cta, remate, salida, tmp, arranque=0.0):
             f"[conmarco][borde]overlay=0:0:format=auto[base];"
         )
 
-    # indices de las capas png
-    i_gancho = 1 if formato == "movil" else 3
-    i_marca = i_gancho + 1
-    i_cierre = i_gancho + 2
-    entradas += ["-loop", "1", "-i", p_gancho,
-                 "-loop", "1", "-i", p_marca,
-                 "-loop", "1", "-i", p_cierre]
+    # Capas: (ruta, t_inicio, t_fin, fundido_entrada, fundido_salida)
+    capas = []
+    n = 0
+
+    def guardar(img, sufijo):
+        nonlocal n
+        r = os.path.join(tmp, f"capa_{n}_{sufijo}.png")
+        n += 1
+        img.save(r)
+        return r
+
+    if tipo == "dato":
+        capas.append((guardar(capa_dato(dato, proyecto), "dato"), 0.0, 3.0, 0.10, 0.45))
+        t_marca = 3.1
+    elif tipo == "ficha":
+        capas.append((guardar(capa_ficha(proyecto), "ficha"), 0.0, 2.8, 0.10, 0.45))
+        t_marca = 2.9
+    elif tipo == "lista":
+        for i, frase in enumerate(serie):
+            a = 1.2 + i * 4.6
+            capas.append((guardar(capa_frase(frase, proyecto), f"f{i}"),
+                          a, a + 3.0, 0.35, 0.35))
+        t_marca = 0.6
+    else:  # escaparate
+        capas.append((guardar(capa_gancho(gancho, proyecto), "gancho"),
+                      0.0, T_HOOK_FIN, 0.10, 0.45))
+        t_marca = T_MARCA_INI
+
+    # En el tipo 'lista' la pildora del dominio comparte sitio con las frases,
+    # asi que la marca va solo cuando no hay frase en pantalla.
+    if tipo != "lista":
+        capas.append((guardar(capa_marca(proyecto, formato), "marca"),
+                      t_marca, T_FINAL_INI, 0.45, 0.45))
+    else:
+        ultima = 1.2 + (len(serie) - 1) * 4.6 + 3.0
+        capas.append((guardar(capa_marca(proyecto, formato), "marca"),
+                      ultima + 0.4, T_FINAL_INI, 0.45, 0.45))
+
+    capas.append((guardar(capa_cierre(proyecto, cta, remate), "cierre"),
+                  T_FINAL_INI, DUR + 1, 0.55, None))
+
+    # Cadena de superposiciones
+    idx0 = 1 if formato == "movil" else 3
+    fc = base
+    etiqueta = "base"
+    for k, (ruta, t0, t1, fin_, fout) in enumerate(capas):
+        entradas += ["-loop", "1", "-i", ruta]
+        i = idx0 + k
+        fundidos = f"fade=t=in:st={t0 + 0.05:.2f}:d={fin_:.2f}:alpha=1"
+        if fout:
+            fundidos += f",fade=t=out:st={t1 - fout - 0.05:.2f}:d={fout:.2f}:alpha=1"
+        siguiente = f"v{k}"
+        fc += (f"[{i}:v]format=rgba,fps={FPS},{fundidos}[c{k}];"
+               f"[{etiqueta}][c{k}]overlay=0:0:"
+               f"enable='between(t,{t0:.2f},{t1:.2f})'[{siguiente}];")
+        etiqueta = siguiente
+    fc = fc.rstrip(";").replace(f"[{etiqueta}];", f"[{etiqueta}]")
+    if fc.endswith(f"[{etiqueta}]") is False:
+        fc += f"[{etiqueta}]"
+
+    i_audio = idx0 + len(capas)
     entradas += ["-f", "lavfi", "-i",
                  "anullsrc=channel_layout=stereo:sample_rate=44100"]
-    i_audio = i_cierre + 1
-
-    fc = base + (
-        f"[{i_gancho}:v]format=rgba,fps={FPS},"
-        f"fade=t=in:st=0.10:d=0.45:alpha=1,"
-        f"fade=t=out:st={T_HOOK_FIN - 0.5:.2f}:d=0.45:alpha=1[g];"
-        f"[base][g]overlay=0:0:enable='between(t,0,{T_HOOK_FIN})'[v1];"
-
-        f"[{i_marca}:v]format=rgba,fps={FPS},"
-        f"fade=t=in:st={T_MARCA_INI:.2f}:d=0.45:alpha=1,"
-        f"fade=t=out:st={T_FINAL_INI - 0.6:.2f}:d=0.45:alpha=1[m];"
-        f"[v1][m]overlay=0:0:enable='between(t,{T_MARCA_INI},{T_FINAL_INI})'[v2];"
-
-        f"[{i_cierre}:v]format=rgba,fps={FPS},"
-        f"fade=t=in:st={T_FINAL_INI:.2f}:d=0.55:alpha=1[c];"
-        f"[v2][c]overlay=0:0:enable='gte(t,{T_FINAL_INI})'[vout]"
-    )
 
     cmd = (["ffmpeg", "-y", "-loglevel", "error"] + entradas +
            ["-filter_complex", fc,
-            "-map", "[vout]", "-map", f"{i_audio}:a",
+            "-map", f"[{etiqueta}]", "-map", f"{i_audio}:a",
             "-t", str(DUR),
             "-c:v", "libx264", "-preset", "fast", "-crf", "21",
             "-profile:v", "high", "-level", "4.0", "-pix_fmt", "yuv420p",
@@ -528,7 +724,6 @@ def render(proyecto, formato, gancho, cta, remate, salida, tmp, arranque=0.0):
     subprocess.run(cmd, check=True)
     return salida
 
-
 # --------------------------------------------------------------------------
 def main():
     ap = argparse.ArgumentParser()
@@ -536,6 +731,9 @@ def main():
     ap.add_argument("--out", default=os.path.join(AQUI, "videos"))
     ap.add_argument("--fecha", default=None, help="YYYY-MM-DD")
     ap.add_argument("--nombre", default=None)
+    ap.add_argument("--variante", default="instagram",
+                    choices=["instagram", "tiktok"],
+                    help="tiktok elige SIEMPRE otro negocio y otro gancho")
     ap.add_argument("--json", action="store_true",
                     help="imprime {file, caption} en JSON por stdout")
     args = ap.parse_args()
@@ -543,25 +741,37 @@ def main():
     fecha = (datetime.strptime(args.fecha, "%Y-%m-%d").date()
              if args.fecha else date.today())
 
-    proyecto, formato, gancho, cta, remate, arranque = elegir(fecha, args.slot)
+    proyecto, formato, gancho, cta, remate, arranque, tipo, dato, serie = elegir(
+        fecha, args.slot, args.variante)
     os.makedirs(args.out, exist_ok=True)
-    nombre = args.nombre or f"reel-{fecha.isoformat()}-{args.slot}-{proyecto['id']}-{formato}.mp4"
+    prefijo = "tiktok" if args.variante == "tiktok" else "reel"
+    nombre = (args.nombre or
+              f"{prefijo}-{fecha.isoformat()}-{args.slot}-{proyecto['id']}"
+              f"-{formato}-{tipo}.mp4")
     salida = os.path.join(args.out, nombre)
 
     tmp = tempfile.mkdtemp(prefix="reel-", dir=os.path.join(AQUI, "tmp")
                            if os.path.isdir(os.path.join(AQUI, "tmp")) else None)
     try:
-        render(proyecto, formato, gancho, cta, remate, salida, tmp, arranque)
+        render(proyecto, formato, gancho, cta, remate, salida, tmp,
+               arranque, tipo, dato, serie)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
-    caption = construir_caption(proyecto, cta, remate)
+    caption = construir_caption(proyecto, cta, remate, args.variante)
 
     if args.json:
-        print(json.dumps({"file": nombre, "caption": caption, "posted": False},
-                         ensure_ascii=False))
+        salida_json = {"file": nombre, "caption": caption}
+        if args.variante == "tiktok":
+            salida_json.update({"fecha": fecha.isoformat(), "slot": args.slot,
+                                "negocio": proyecto["nombre"], "formato": formato,
+                                "tipo_anuncio": tipo})
+        else:
+            salida_json["posted"] = False
+        print(json.dumps(salida_json, ensure_ascii=False))
     else:
         print(f"[OK] {salida}")
+        print(f"     variante: {args.variante} · anuncio tipo {tipo}")
         print(f"     proyecto: {proyecto['nombre']} ({proyecto['tipo']}) · formato {formato}")
         print(f"     gancho  : {gancho.replace(chr(10), ' / ')}")
         print(f"     cta     : {cta}")
