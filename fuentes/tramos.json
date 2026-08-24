@@ -1,0 +1,184 @@
+{
+  "01-charter-nautico-marea-viva-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.779,
+    "peor": 0.385,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "01-charter-nautico-marea-viva-movil.mp4": {
+    "inicio": 1.0,
+    "nota": 0.492,
+    "peor": 0.221,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "02-villa-vacacional-casa-timanfaya-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.78,
+    "peor": 0.396,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "02-villa-vacacional-casa-timanfaya-movil.mp4": {
+    "inicio": 1.0,
+    "nota": 0.454,
+    "peor": 0.201,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "03-restaurante-salitre-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.763,
+    "peor": 0.206,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "03-restaurante-salitre-movil.mp4": {
+    "inicio": 0.0,
+    "nota": 0.463,
+    "peor": 0.284,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "04-concesionario-vega-motor-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.544,
+    "peor": 0.257,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "04-concesionario-vega-motor-movil.mp4": {
+    "inicio": 0.0,
+    "nota": 0.349,
+    "peor": 0.223,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "05-clinica-estetica-aran-escritorio.mp4": {
+    "inicio": 0.5,
+    "nota": 0.68,
+    "peor": 0.262,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "05-clinica-estetica-aran-movil.mp4": {
+    "inicio": 0.5,
+    "nota": 0.529,
+    "peor": 0.283,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "06-bodega-malvasia-alta-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.569,
+    "peor": 0.249,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "06-bodega-malvasia-alta-movil.mp4": {
+    "inicio": 0.0,
+    "nota": 0.683,
+    "peor": 0.353,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "07-hotel-rural-casona-del-risco-escritorio.mp4": {
+    "inicio": 0.5,
+    "nota": 0.701,
+    "peor": 0.235,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "07-hotel-rural-casona-del-risco-movil.mp4": {
+    "inicio": 1.5,
+    "nota": 0.647,
+    "peor": 0.279,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "08-reformas-taller-tosca-escritorio.mp4": {
+    "inicio": 1.0,
+    "nota": 0.708,
+    "peor": 0.32,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "08-reformas-taller-tosca-movil.mp4": {
+    "inicio": 0.0,
+    "nota": 0.465,
+    "peor": 0.204,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "09-inmobiliaria-cardon-propiedades-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.711,
+    "peor": 0.232,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "09-inmobiliaria-cardon-propiedades-movil.mp4": {
+    "inicio": 0.0,
+    "nota": 0.534,
+    "peor": 0.249,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "10-centro-rendimiento-basalto-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.588,
+    "peor": 0.183,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "10-centro-rendimiento-basalto-movil.mp4": {
+    "inicio": 1.5,
+    "nota": 0.562,
+    "peor": 0.292,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "11-spa-bruma-banos-escritorio.mp4": {
+    "inicio": 1.0,
+    "nota": 0.489,
+    "peor": 0.225,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "11-spa-bruma-banos-movil.mp4": {
+    "inicio": 0.5,
+    "nota": 0.127,
+    "peor": 0.13,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "12-escuela-surf-corriente-norte-escritorio.mp4": {
+    "inicio": 0.0,
+    "nota": 0.828,
+    "peor": 0.397,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "12-escuela-surf-corriente-norte-movil.mp4": {
+    "inicio": 0.0,
+    "nota": 0.494,
+    "peor": 0.243,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "13-lavandera-design-escritorio.mp4": {
+    "inicio": 11.0,
+    "nota": 0.685,
+    "peor": 0.475,
+    "duracion": 26.0,
+    "muestras": 52
+  },
+  "13-lavandera-design-movil.mp4": {
+    "inicio": 3.0,
+    "nota": 0.727,
+    "peor": 0.486,
+    "duracion": 19.57,
+    "muestras": 39
+  }
+}
