@@ -18,6 +18,7 @@ import argparse
 import json
 import math
 import os
+import random
 import subprocess
 import sys
 import tempfile
@@ -31,11 +32,29 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 # --------------------------------------------------------------------------
 W, H = 1080, 1920
 FPS = 30
-DUR = 18.0                     # duracion del reel en segundos
+DUR = 15.0                     # 15 s es el punto dulce medido de TikTok
 DOMINIO = "lavanderadesign.com"
 
 AQUI = os.path.dirname(os.path.abspath(__file__))
 FUENTES_DIR = os.path.join(AQUI, "fuentes")
+TRAMOS_JSON = os.path.join(FUENTES_DIR, "tramos.json")
+
+
+def cargar_tramos():
+    """Tramo medido como mas atractivo de cada metraje.
+
+    Lo calcula herramientas/tramos.py mirando el video de verdad. Antes el
+    arranque salia de una formula de rotacion y por eso a veces el anuncio
+    empezaba en una franja de texto plano o en un hueco en blanco.
+    """
+    try:
+        with open(TRAMOS_JSON, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {}
+
+
+TRAMOS = cargar_tramos()
 ASSETS = os.path.join(AQUI, "assets")
 F_BOLD = os.path.join(ASSETS, "Outfit-Bold.ttf")
 F_REG = os.path.join(ASSETS, "Outfit-Regular.ttf")
@@ -44,10 +63,23 @@ TINTA = (255, 255, 255)
 TENUE = (183, 190, 201)
 FONDO = (9, 11, 15)
 
+# ---------------------------------------------------------------------------
+# Paleta de marca para el CIERRE. lavanderadesign.com no es oscura: es crema,
+# marmol, oro y lapislazuli. El video puede ser oscuro por el metraje, pero la
+# ultima pantalla -que es la que se recuerda- tiene que ser la nuestra.
+# ---------------------------------------------------------------------------
+MARFIL = (247, 245, 240)        # el crema del sitio (#F5F2EC redondeado)
+MARFIL_HONDO = (231, 226, 216)  # sombra del degradado
+VETA = (191, 182, 167)          # vetas del marmol
+GRAFITO = (18, 20, 24)          # texto principal
+ORO = (168, 133, 56)            # laton de los detalles
+LAPIS = (34, 56, 110)           # azul lapislazuli del medallon
+GRIS_CALIDO = (122, 114, 101)   # texto secundario
+
 # Momentos clave (segundos)
-T_HOOK_FIN = 3.4
-T_MARCA_INI = 3.5
-T_FINAL_INI = DUR - 3.4
+T_HOOK_FIN = 3.0
+T_MARCA_INI = 3.1
+T_FINAL_INI = DUR - 2.4
 
 # Layout del formato escritorio: la captura 16:9 se amplia 1.3x y se recorta a
 # los lados para que el texto de la web se lea de verdad en un movil.
@@ -147,17 +179,30 @@ PROYECTOS = [
         "escritorio": "12-escuela-surf-corriente-norte-escritorio.mp4",
         "url": DOMINIO,
     },
+    {"id": "lavandera-design", "nombre": "Lavandera Design",
+     "sector": "nuestro estudio", "tipo": "propio", "acento": (168, 133, 56),
+     "movil": "13-lavandera-design-movil.mp4",
+     "escritorio": "13-lavandera-design-escritorio.mp4", "url": DOMINIO},
 ]
 
 GANCHOS = [
+    # Nada de estadisticas de terceros. Habia un "El 75% te juzga por tu web"
+    # que venia de un informe que ni podemos comprobar ni tenemos derecho a
+    # citar como si fuera nuestro. Si lo decimos en un anuncio, o es nuestro o
+    # es una pregunta.
     "Esto no es\nuna plantilla.",
     "Tu competencia\nya tiene una\nweb así.",
     "Mira lo que ve\ntu cliente\nen el móvil.",
-    "Tienes 3 segundos\npara convencer.",
     "Una web no es\nun folleto.",
     "Sin plantillas.\nDiseñada\ndesde cero.",
-    "El 75% te juzga\npor tu web.",
     "Así se ve una web\nhecha a medida.",
+    "¿Tu web parece\nde hace diez\naños?",
+    "¿Cuánto crees\nque cuesta\nuna web así?",
+    "Esto lo hemos\nhecho nosotros.",
+    "Sin plantillas.\nSin WordPress.\nSin excusas.",
+    "Tu web no vende.\nY sabemos\npor qué.",
+    "Enséñame tu web\ny te digo\nqué falla.",
+    "Nadie más\nva a tener\nesta web.",
 ]
 
 CTAS = [
@@ -215,6 +260,89 @@ def scrim_vertical(size, color, desde_alpha, hasta_alpha, arriba=True):
     return out
 
 
+def scrim_bloque(alto_solido, alto_fundido, alpha=236, color=(0, 0, 0)):
+    """Velo opaco hasta cierta altura y despues fundido a transparente.
+
+    El degradado simple se quedaba corto cuando el titular ocupa tres lineas:
+    a media altura ya era casi transparente y el titular de la propia web se
+    colaba entre las letras. Con esto el texto cae siempre sobre fondo solido
+    y el fundido arranca justo donde el texto termina.
+    """
+    h = max(1, int(alto_solido + alto_fundido))
+    mascara = Image.new("L", (1, h))
+    for y in range(h):
+        if y < alto_solido:
+            a = alpha
+        else:
+            t = (y - alto_solido) / max(1, alto_fundido - 1)
+            a = alpha * (1 - t)
+        mascara.putpixel((0, y), int(max(0, min(255, a))))
+    mascara = mascara.resize((W, h))
+    out = Image.new("RGBA", (W, h), color + (0,))
+    out.putalpha(mascara)
+    return out
+
+
+def marmol(semilla=0, w=W, h=H):
+    """Fondo de marmol generado con codigo: crema con vetas suaves.
+
+    Nada de numpy (no esta instalado en el runner de GitHub) ni de imagenes de
+    banco: se dibuja a baja resolucion y se amplia, que es lo que le da el
+    aspecto de piedra pulida en vez de ruido digital.
+    """
+    rnd = random.Random(1000 + semilla)
+    pw, ph = 150, 266                      # se amplia x7,2 despues
+
+    # Campo de ruido suave: la deformacion que tuerce las vetas.
+    ruido = Image.new("L", (pw, ph))
+    ruido.putdata([rnd.randint(0, 255) for _ in range(pw * ph)])
+    ruido = ruido.filter(ImageFilter.GaussianBlur(9))
+    rd = ruido.load()
+
+    veta = Image.new("L", (pw, ph))
+    vd = veta.load()
+    fase = rnd.uniform(0, 6.28)
+    incl = rnd.uniform(0.35, 0.75)          # inclinacion de las vetas
+    for y in range(ph):
+        for x in range(pw):
+            t = (x / pw + y / ph * incl) * 6.283 * 1.7 + fase
+            t += (rd[x, y] - 128) / 128.0 * 1.15
+            # sin() elevado: lineas finas y separadas, como la piedra real
+            v = abs(math.sin(t)) ** 7
+            vd[x, y] = int(255 * v)
+    veta = veta.resize((w, h), Image.BICUBIC).filter(ImageFilter.GaussianBlur(3))
+
+    # Base: degradado crema de arriba a abajo.
+    base = Image.new("RGB", (1, h))
+    bd = base.load()
+    for y in range(h):
+        k = y / max(1, h - 1)
+        bd[0, y] = tuple(int(MARFIL[i] + (MARFIL_HONDO[i] - MARFIL[i]) * k)
+                         for i in range(3))
+    base = base.resize((w, h))
+
+    # Las vetas oscurecen ligeramente: nunca mas de un 22 %.
+    tinte = Image.new("RGB", (w, h), VETA)
+    mascara = veta.point(lambda v: int(v * 0.30))
+    return Image.composite(tinte, base, mascara).convert("RGBA")
+
+
+def texto_espaciado(d, xy, texto, font, fill, sep=0):
+    """Dibuja con separacion entre letras. Pillow no la trae y el cierre la
+    necesita: el aire entre caracteres es la mitad del aspecto caro."""
+    x, y = xy
+    for ch in texto:
+        d.text((x, y), ch, font=font, fill=fill)
+        x += d.textlength(ch, font=font) + sep
+    return x
+
+
+def ancho_espaciado(d, texto, font, sep=0):
+    if not texto:
+        return 0
+    return sum(d.textlength(c, font=font) for c in texto) + sep * (len(texto) - 1)
+
+
 def redondear(img, radio):
     mascara = Image.new("L", img.size, 0)
     ImageDraw.Draw(mascara).rounded_rectangle([0, 0, img.size[0] - 1, img.size[1] - 1],
@@ -230,14 +358,18 @@ def redondear(img, radio):
 def capa_gancho(gancho, proyecto):
     """Texto de gancho arriba, sobre un degradado oscuro."""
     capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    scrim = scrim_vertical((W, 900), (0, 0, 0), 232, 0, arriba=True)
-    capa.alpaste = None
-    capa.paste(scrim, (0, 0), scrim)
     d = ImageDraw.Draw(capa)
 
     f = fuente(F_BOLD, 108)
     tw, th = medir(d, gancho, f, spacing=14)
     x, y = 72, 232
+
+    # El velo se dibuja a la medida del titular: solido mientras hay letras y
+    # fundido a partir de ahi. Si no, con tres lineas se lee la web de debajo.
+    velo = scrim_bloque(y + th + 64, 430, 240)
+    capa.paste(velo, (0, 0), velo)
+
+    d = ImageDraw.Draw(capa)
     d.multiline_text((x, y), gancho, font=f, fill=TINTA, spacing=14)
 
     # Barrita de acento sobre el titular
@@ -276,6 +408,8 @@ def capa_marca(proyecto, formato="movil"):
     fp = fuente(F_REG, 31)
     if proyecto["tipo"] == "cliente":
         rotulo = f"{proyecto['nombre']}  ·  proyecto real de cliente"
+    elif proyecto["tipo"] == "propio":
+        rotulo = f"{proyecto['nombre']}  ·  nuestra propia web"
     else:
         rotulo = f"{proyecto['nombre']}  ·  proyecto propio de muestra"
     rw = d.textlength(rotulo, font=fp)
@@ -309,68 +443,76 @@ def capa_marca(proyecto, formato="movil"):
 
 
 def capa_cierre(proyecto, cta, remate):
-    """Cierre a pantalla completa: dominio grande + llamada a la accion."""
-    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    fondo = Image.new("RGBA", (W, H), FONDO + (255,))
-    capa.paste(fondo, (0, 0), fondo)
+    """Cierre a pantalla completa CON LA ESTETICA DE LA MARCA.
+
+    El metraje puede ser oscuro, pero lavanderadesign.com es crema, marmol,
+    oro y lapislazuli. La ultima pantalla es la que se queda en la cabeza, asi
+    que es la que tiene que parecerse a la web de verdad. El salto de oscuro a
+    luz ademas remata bien: el ojo se va solo al dominio.
+    """
+    semilla = sum(ord(c) for c in proyecto["id"])
+    capa = marmol(semilla).copy()
     d = ImageDraw.Draw(capa)
 
-    ac = proyecto["acento"]
-
-    # Halo de acento detras del bloque central
-    halo = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    hd = ImageDraw.Draw(halo)
-    hd.ellipse([W // 2 - 470, H // 2 - 430, W // 2 + 470, H // 2 + 180], fill=ac + (46,))
-    halo = halo.filter(ImageFilter.GaussianBlur(140))
-    capa = Image.alpha_composite(capa, halo)
+    # --- Marca de agua muy tenue: circulo de oro, guino al medallon ---------
+    aro = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ad = ImageDraw.Draw(aro)
+    r, ccy = 236, 356
+    ad.ellipse([W // 2 - r, ccy - r, W // 2 + r, ccy + r],
+               outline=ORO + (52,), width=3)
+    capa = Image.alpha_composite(capa, aro)
     d = ImageDraw.Draw(capa)
 
-    cy = 700
+    cy = 640
 
-    # Antetitulo
-    fa = fuente(F_REG, 40)
+    # --- Antetitulo, muy espaciado (el aire es lo que da el aire caro) ------
+    fa = fuente(F_REG, 34)
     ante = "TU NEGOCIO MERECE UNA WEB ASÍ"
-    aw = d.textlength(ante, font=fa)
-    d.text(((W - aw) / 2, cy), ante, font=fa, fill=(255, 255, 255, 205))
+    aw = ancho_espaciado(d, ante, fa, 8)
+    texto_espaciado(d, ((W - aw) / 2, cy), ante, fa, GRIS_CALIDO, 8)
 
-    # Llamada a la accion, grande
+    # --- Llamada a la accion, grande y en grafito --------------------------
     fc = fuente(F_BOLD, 92)
-    lineas = envolver(d, cta, fc, W - 190)
-    y = cy + 96
-    for ln in lineas:
+    y = cy + 104
+    for ln in envolver(d, cta, fc, W - 190):
         lw = d.textlength(ln, font=fc)
-        d.text(((W - lw) / 2, y), ln, font=fc, fill=TINTA)
+        d.text(((W - lw) / 2, y), ln, font=fc, fill=GRAFITO)
         y += 108
 
-    # Separador
-    y += 40
-    d.rounded_rectangle([W // 2 - 70, y, W // 2 + 70, y + 8], radius=4, fill=ac)
-    y += 76
+    # --- Filete de oro con un punto de lapislazuli en medio ----------------
+    y += 54
+    d.rounded_rectangle([W // 2 - 150, y + 4, W // 2 - 26, y + 7], radius=2, fill=ORO)
+    d.rounded_rectangle([W // 2 + 26, y + 4, W // 2 + 150, y + 7], radius=2, fill=ORO)
+    d.ellipse([W // 2 - 9, y - 4, W // 2 + 9, y + 14], fill=LAPIS)
+    y += 74
 
-    # EL DOMINIO: lo mas grande y legible del cierre
-    fd = fuente(F_BOLD, 82)
+    # --- EL DOMINIO: lo mas grande del cierre, en grafito sobre el marmol ---
+    fd = fuente(F_BOLD, 88)
     dw = d.textlength(DOMINIO, font=fd)
-    caja_w = int(dw) + 128
-    caja_x = (W - caja_w) // 2
-    d.rounded_rectangle([caja_x, y, caja_x + caja_w, y + 152], radius=32,
-                        fill=(255, 255, 255, 250))
-    d.text(((W - dw) / 2, y + 32), DOMINIO, font=fd, fill=(9, 11, 15))
-    y += 152 + 60
+    d.text(((W - dw) / 2, y), DOMINIO, font=fd, fill=GRAFITO)
+    y += 118
+    d.rounded_rectangle([(W - dw) / 2, y, (W + dw) / 2, y + 5], radius=2,
+                        fill=ORO + (170,))
+    y += 66
 
-    # Remate
+    # --- Remate ------------------------------------------------------------
     fr = fuente(F_REG, 44)
-    for ln in envolver(d, remate, fr, W - 200):
+    for ln in envolver(d, remate, fr, W - 220):
         lw = d.textlength(ln, font=fr)
-        d.text(((W - lw) / 2, y), ln, font=fr, fill=TENUE)
+        d.text(((W - lw) / 2, y), ln, font=fr, fill=GRIS_CALIDO)
         y += 60
 
-    # Firma abajo
-    ff = fuente(F_REG, 34)
-    firma = "LAVANDERA DESIGN  ·  DISEÑO Y DESARROLLO WEB  ·  CANARIAS"
-    fw = d.textlength(firma, font=ff)
-    d.text(((W - fw) / 2, H - 260), firma, font=ff, fill=(255, 255, 255, 165))
-    return capa
+    # --- Firma abajo, espaciada -------------------------------------------
+    firma = "LAVANDERA DESIGN  ·  CANARIAS"
+    disponible = W - 140
+    for tam, sep in ((30, 8), (28, 6), (26, 5), (24, 4), (22, 3)):
+        ff = fuente(F_REG, tam)
+        fw = ancho_espaciado(d, firma, ff, sep)
+        if fw <= disponible:
+            break
+    texto_espaciado(d, ((W - fw) / 2, H - 250), firma, ff, GRIS_CALIDO, sep)
 
+    return capa
 
 def envolver(d, texto, font, max_w):
     palabras = texto.split()
@@ -484,6 +626,9 @@ def construir_caption(proyecto, cta, remate, variante="instagram"):
     if proyecto["tipo"] == "cliente":
         linea_proy = (f"{proyecto['nombre']} ({proyecto['sector']}) es un encargo real "
                       f"diseñado y desarrollado por nosotros.")
+    elif proyecto["tipo"] == "propio":
+        linea_proy = (f"{proyecto['nombre']}: grabación nuestra, sin trucos. "
+                      f"Es lo que ves cuando entras.")
     else:
         linea_proy = (f"AVISO: {proyecto['nombre']} es un proyecto propio de muestra. "
                       f"La marca, los textos y las imágenes son inventados por nosotros "
@@ -509,6 +654,58 @@ def construir_caption(proyecto, cta, remate, variante="instagram"):
 # Cuatro maneras distintas de abrir el mismo metraje. Rotan para que dos
 # anuncios seguidos nunca tengan la misma forma, no solo distinto negocio.
 TIPOS = ["escaparate", "dato", "ficha", "lista"]
+
+# Segundo eje, independiente del anterior: COMO ABRE el video. El tipo dice
+# que cuenta el anuncio; la apertura dice que ve el ojo en el primer medio
+# segundo. Separarlos multiplica las combinaciones sin rehacer el motor, y es
+# lo que evita que diez anuncios seguidos se vean iguales.
+APERTURAS = ["directo", "destello", "cuenta", "marco"]
+
+
+def capa_destello(proyecto):
+    """Fogonazo del color de acento que se abre en tres decimas."""
+    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ac = proyecto["acento"]
+    fondo = Image.new("RGBA", (W, H), ac + (236,))
+    capa.paste(fondo, (0, 0), fondo)
+    d = ImageDraw.Draw(capa)
+    t = DOMINIO.split(".")[0].upper()
+    # Se ajusta al ancho: a 150 px "LAVANDERADESIGN" se salia por los dos lados
+    # y se leia "VANDERADESIG".
+    for tam in (150, 132, 116, 102, 90, 80):
+        f = fuente(F_BOLD, tam)
+        tw = d.textlength(t, font=f)
+        if tw <= W - 120:
+            break
+    d.text(((W - tw) / 2, H // 2 - tam * 0.64), t, font=f,
+           fill=(255, 255, 255, 236))
+    return capa
+
+
+def capa_cifra(texto, proyecto):
+    """Numero enorme a pantalla completa: el 3, el 2 y el 1 de la cuenta."""
+    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    # Translucido a proposito: se ve el numero Y se ve la web por detras, asi
+    # que la cuenta atras no roba el medio segundo bueno, lo decora.
+    fondo = Image.new("RGBA", (W, H), FONDO + (188,))
+    capa.paste(fondo, (0, 0), fondo)
+    d = ImageDraw.Draw(capa)
+    f = fuente(F_BOLD, 460)
+    tw = d.textlength(texto, font=f)
+    d.text(((W - tw) / 2, H // 2 - 330), texto, font=f, fill=proyecto["acento"] + (255,))
+    return capa
+
+
+def capa_marco_acento(proyecto):
+    """Marco grueso de acento que entra y sale: dirige el ojo a la pantalla."""
+    capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(capa)
+    ac = proyecto["acento"]
+    # Fino y con dos ecos: a 26 px de grosor parecia un marco de fotos barato.
+    g = 13
+    for i, a in ((0, 235), (g, 120), (g * 2, 52)):
+        d.rectangle([i, i, W - 1 - i, H - 1 - i], outline=ac + (a,), width=g)
+    return capa
 
 # Datos NUESTROS, comprobables en lavanderadesign.com. No usamos estadisticas
 # de terceros: si lo decimos en un anuncio, tiene que ser algo que cumplimos.
@@ -613,22 +810,36 @@ def duracion_de(path):
 
 
 def render(proyecto, formato, gancho, cta, remate, salida, tmp,
-           arranque=0.0, tipo="escaparate", dato=None, serie=None):
+           arranque=0.0, tipo="escaparate", dato=None, serie=None,
+           apertura="directo"):
     os.makedirs(tmp, exist_ok=True)
     archivo = proyecto[formato]
     src = os.path.join(FUENTES_DIR, archivo)
     if not os.path.exists(src):
         raise SystemExit(f"[ERROR] No encuentro el metraje: {src}")
 
-    # Solo arrancamos mas adelante si al metraje le sobra metraje de verdad.
-    sobra = duracion_de(src) - DUR
-    ini = arranque if sobra >= arranque else 0.0
+    # El arranque NO es una formula: sale de medir el video. tramos.json dice
+    # donde empieza la mejor ventana de cada metraje, para que el anuncio no
+    # abra nunca en una franja de texto plano ni en un hueco en blanco.
+    sobra = max(0.0, duracion_de(src) - DUR)
+    medido = TRAMOS.get(archivo.replace(chr(92), "/"), {}).get("inicio")
+    if medido is None:
+        ini = min(arranque, sobra)
+    else:
+        # Vaiven pequeno DENTRO del tramo bueno: dos anuncios del mismo
+        # metraje no abren en el plano exacto, pero ninguno se sale de la zona.
+        vaiven = ((arranque / 2.0) % 3) * 0.6 - 0.6
+        ini = max(0.0, min(sobra, medido + vaiven))
     entradas = ["-stream_loop", "-1"]
     if ini > 0:
         entradas += ["-ss", f"{ini:.2f}"]
     entradas += ["-i", src]
 
-    if formato == "movil":
+    # El metraje propio (grabado con el movil o la camara) va a sangre: nada de
+    # marco de navegador encima de unas manos sujetando un iPad.
+    a_sangre = proyecto.get("marco") is False
+
+    if formato == "movil" or a_sangre:
         base = (f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,"
                 f"crop={W}:{H},fps={FPS},setsar=1[base];")
     else:
@@ -647,6 +858,8 @@ def render(proyecto, formato, gancho, cta, remate, salida, tmp,
             f"[conmarco][borde]overlay=0:0:format=auto[base];"
         )
 
+    fmt_marca = "movil" if a_sangre else formato
+
     # Capas: (ruta, t_inicio, t_fin, fundido_entrada, fundido_salida)
     capas = []
     n = 0
@@ -659,43 +872,61 @@ def render(proyecto, formato, gancho, cta, remate, salida, tmp,
         return r
 
     if tipo == "dato":
-        capas.append((guardar(capa_dato(dato, proyecto), "dato"), 0.0, 3.0, 0.10, 0.45))
-        t_marca = 3.1
+        capas.append((guardar(capa_dato(dato, proyecto), "dato"), 0.0, 2.6, 0.04, 0.40))
+        t_marca = 2.7
     elif tipo == "ficha":
-        capas.append((guardar(capa_ficha(proyecto), "ficha"), 0.0, 2.8, 0.10, 0.45))
-        t_marca = 2.9
+        capas.append((guardar(capa_ficha(proyecto), "ficha"), 0.0, 2.5, 0.04, 0.40))
+        t_marca = 2.6
     elif tipo == "lista":
         for i, frase in enumerate(serie):
-            a = 1.2 + i * 4.6
+            a = 0.0 if i == 0 else 0.8 + i * 3.4
             capas.append((guardar(capa_frase(frase, proyecto), f"f{i}"),
-                          a, a + 3.0, 0.35, 0.35))
-        t_marca = 0.6
+                          a, a + 2.7, 0.04 if i == 0 else 0.30, 0.30))
+        t_marca = 0.5
     else:  # escaparate
+        # El gancho esta EN EL FOTOGRAMA 1. Nada de aparecer poco a poco:
+        # si a los tres segundos se cae mas del 30 % de la gente, el gancho
+        # es malo, y un fundido de entrada regala medio segundo.
         capas.append((guardar(capa_gancho(gancho, proyecto), "gancho"),
-                      0.0, T_HOOK_FIN, 0.10, 0.45))
+                      0.0, T_HOOK_FIN, 0.04, 0.40))
         t_marca = T_MARCA_INI
 
     # En el tipo 'lista' la pildora del dominio comparte sitio con las frases,
     # asi que la marca va solo cuando no hay frase en pantalla.
     if tipo != "lista":
-        capas.append((guardar(capa_marca(proyecto, formato), "marca"),
+        capas.append((guardar(capa_marca(proyecto, fmt_marca), "marca"),
                       t_marca, T_FINAL_INI, 0.45, 0.45))
     else:
-        ultima = 1.2 + (len(serie) - 1) * 4.6 + 3.0
-        capas.append((guardar(capa_marca(proyecto, formato), "marca"),
+        ultima = (0.0 if len(serie) == 1 else 0.8 + (len(serie) - 1) * 3.4) + 2.7
+        capas.append((guardar(capa_marca(proyecto, fmt_marca), "marca"),
                       ultima + 0.4, T_FINAL_INI, 0.45, 0.45))
 
     capas.append((guardar(capa_cierre(proyecto, cta, remate), "cierre"),
-                  T_FINAL_INI, DUR + 1, 0.55, None))
+                  T_FINAL_INI, DUR + 1, 0.45, None))
+
+    # LA APERTURA VA LA ULTIMA para que se dibuje por encima de todo: es lo
+    # que ocupa el primer medio segundo, que es donde se decide si se quedan.
+    if apertura == "destello":
+        capas.append((guardar(capa_destello(proyecto), "destello"),
+                      0.0, 0.42, 0.01, 0.24))
+    elif apertura == "cuenta":
+        for i, c in enumerate(("3", "2", "1")):
+            a = i * 0.15
+            capas.append((guardar(capa_cifra(c, proyecto), f"c{i}"),
+                          a, a + 0.15, 0.01, 0.04))
+    elif apertura == "marco":
+        capas.append((guardar(capa_marco_acento(proyecto), "marcoac"),
+                      0.0, 0.58, 0.01, 0.26))
 
     # Cadena de superposiciones
-    idx0 = 1 if formato == "movil" else 3
+    idx0 = 1 if (formato == "movil" or a_sangre) else 3
     fc = base
     etiqueta = "base"
     for k, (ruta, t0, t1, fin_, fout) in enumerate(capas):
         entradas += ["-loop", "1", "-i", ruta]
         i = idx0 + k
-        fundidos = f"fade=t=in:st={t0 + 0.05:.2f}:d={fin_:.2f}:alpha=1"
+        st_in = t0 if t0 <= 0.01 else t0 + 0.05
+        fundidos = f"fade=t=in:st={st_in:.2f}:d={max(0.01, fin_):.2f}:alpha=1"
         if fout:
             fundidos += f",fade=t=out:st={t1 - fout - 0.05:.2f}:d={fout:.2f}:alpha=1"
         siguiente = f"v{k}"
@@ -736,6 +967,7 @@ def main():
     ap.add_argument("--variante", default="instagram",
                     choices=["instagram", "tiktok"],
                     help="tiktok elige SIEMPRE otro negocio y otro gancho")
+    ap.add_argument("--apertura", default="directo", choices=APERTURAS)
     ap.add_argument("--json", action="store_true",
                     help="imprime {file, caption} en JSON por stdout")
     args = ap.parse_args()
@@ -756,7 +988,7 @@ def main():
                            if os.path.isdir(os.path.join(AQUI, "tmp")) else None)
     try:
         render(proyecto, formato, gancho, cta, remate, salida, tmp,
-               arranque, tipo, dato, serie)
+               arranque, tipo, dato, serie, args.apertura)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
