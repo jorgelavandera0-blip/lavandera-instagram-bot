@@ -186,30 +186,36 @@ PROYECTOS = [
 ]
 
 GANCHOS = [
-    # Nada de estadisticas de terceros. Habia un "El 75% te juzga por tu web"
-    # que venia de un informe que ni podemos comprobar ni tenemos derecho a
-    # citar como si fuera nuestro. Si lo decimos en un anuncio, o es nuestro o
-    # es una pregunta.
-    "Esto no es\nuna plantilla.",
+    # Cada gancho tiene que cumplir al menos DOS de estas cinco palancas, que
+    # son las que de verdad sostienen medio segundo de atencion:
+    #   1. Habla de TI, no de nosotros (segunda persona).
+    #   2. Abre un bucle: una pregunta o una frase a medias.
+    #   3. Es concreto: un objeto, una accion, un sitio. Nada abstracto.
+    #   4. Duele un poco: lo que se esta perdiendo pesa mas que lo que ganaria.
+    #   5. Rompe el patron: manda hacer algo, o dice algo que no esperaba.
+    # Ninguno inventa cifras ni cita estudios de terceros.
     "Tu competencia\nya tiene una\nweb así.",
-    "Mira lo que ve\ntu cliente\nen el móvil.",
-    "Una web no es\nun folleto.",
-    "Sin plantillas.\nDiseñada\ndesde cero.",
-    "Así se ve una web\nhecha a medida.",
     "¿Tu web parece\nde hace diez\naños?",
     "¿Cuánto crees\nque cuesta\nuna web así?",
-    "Esto lo hemos\nhecho nosotros.",
-    "Sin plantillas.\nSin WordPress.\nSin excusas.",
     "Tu web no vende.\nY sabemos\npor qué.",
     "Enséñame tu web\ny te digo\nqué falla.",
+    "Mira lo que ve\ntu cliente\nen el móvil.",
     "Nadie más\nva a tener\nesta web.",
+    "Si tu web fuera\ntu local,\n¿entrarías?",
+    "Abre tu web\nen el móvil.\nAhora.",
+    "Tu web es\ntu escaparate.\n¿Está cerrado?",
+    "El que está\na tu lado\nya la tiene.",
+    "Tu cliente ya\nte ha juzgado.\nY no lo sabes.",
+    "¿Cuánto tarda\ntu web en abrir?\nCuéntalo.",
 ]
 
+# Las llamadas a la accion concretas rinden mas que las vagas: "pide tu demo"
+# no dice que recibes ni cuando. Estas cuatro dicen exactamente que pasa.
 CTAS = [
-    "Te revisamos tu web gratis",
-    "Pide tu demo gratis",
-    "Demo gratis para tu negocio",
-    "Te decimos qué falla en tu web",
+    "Te digo qué falla en tu web",
+    "Te monto una pantalla gratis",
+    "Mándame tu web y te la reviso",
+    "48 horas y ves tu web nueva",
 ]
 
 # Frases de apoyo del cierre
