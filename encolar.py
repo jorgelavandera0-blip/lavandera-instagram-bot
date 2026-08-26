@@ -3,11 +3,11 @@
 """
 encolar.py - Prepara los dos videos de cada pase.
 
-1. INSTAGRAM: si posts.json no tiene ningun video pendiente, genera uno nuevo
-   y lo anade a la cola para que publish.py lo publique.
-2. TIKTOK: genera SIEMPRE un segundo video del pase, de otro negocio y con otro
-   gancho, y lo apunta en tiktok.json. Ese no se publica solo: Jorge se lo
-   descarga y lo sube a mano a TikTok.
+INSTAGRAM: si posts.json no tiene ningun video pendiente, genera uno nuevo y lo
+anade a la cola para que publish.py lo publique. Cinco pases al dia: 09h, 12h,
+16h, 19h y 21h, hora de Canarias.
+
+Los videos de TikTok NO salen de aqui: los hace lote.py, 10 al dia.
 
 Ademas limpia del repositorio los .mp4 antiguos para que no crezca sin control.
 
@@ -26,13 +26,10 @@ from datetime import date
 AQUI = os.path.dirname(os.path.abspath(__file__))
 FUENTES = os.path.join(AQUI, "fuentes")
 POSTS = os.path.join(AQUI, "posts.json")
-TIKTOK_JSON = os.path.join(AQUI, "tiktok.json")
 VIDEOS = os.path.join(AQUI, "videos")
-TIKTOK_DIR = os.path.join(AQUI, "tiktok")
 
 # Cuantos videos conservamos en el repo antes de borrar los .mp4 mas antiguos.
 CONSERVAR = 6
-CONSERVAR_TIKTOK = 6
 
 
 def cargar(ruta, por_defecto):
@@ -127,12 +124,12 @@ def purgar_fuentes():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--slot", default="12h", choices=["12h", "16h", "21h"])
+    ap.add_argument("--slot", default="12h",
+                    choices=["09h", "12h", "16h", "19h", "21h"])
     ap.add_argument("--forzar", action="store_true")
     args = ap.parse_args()
 
     os.makedirs(VIDEOS, exist_ok=True)
-    os.makedirs(TIKTOK_DIR, exist_ok=True)
     hoy = date.today().isoformat()
 
     # Lo primero: quitar metraje que ya no se usa.
@@ -154,23 +151,10 @@ def main():
     limpiar(posts, VIDEOS, CONSERVAR, clave_hecho="posted")
     guardar(POSTS, posts)
 
-    # ---------------- TIKTOK ----------------
-    # Siempre uno nuevo por pase, de otro negocio, para subirlo a mano.
-    tiktoks = cargar(TIKTOK_JSON, [])
-    ya = [t for t in tiktoks if t.get("fecha") == hoy and t.get("slot") == args.slot]
-
-    if ya and not args.forzar:
-        print(f"[TT] El video de TikTok del pase {args.slot} de hoy ya existe: "
-              f"{ya[-1]['file']}")
-    else:
-        print(f"[TT] Generando el video de TikTok del pase {args.slot}...")
-        e = generar(args.slot, "tiktok", TIKTOK_DIR)
-        mb = e.pop("_mb")
-        tiktoks.append(e)
-        print(f"[TT] Listo para descargar: {e['file']} ({mb} MB) · {e.get('negocio')}")
-
-    limpiar(tiktoks, TIKTOK_DIR, CONSERVAR_TIKTOK)
-    guardar(TIKTOK_JSON, tiktoks)
+    # La parte de TikTok se quito a proposito. Los videos de TikTok salen
+    # ahora de lote.py (10 al dia, con las cuatro aperturas y los cupos de
+    # reparto). Tener aqui un segundo generador solo duplicaba contenido peor
+    # y hacia crecer el repositorio sin motivo.
 
 
 if __name__ == "__main__":

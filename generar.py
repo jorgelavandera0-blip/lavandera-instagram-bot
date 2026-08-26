@@ -574,7 +574,10 @@ def borde_captura(proyecto):
 # --------------------------------------------------------------------------
 # Seleccion determinista de contenido
 # --------------------------------------------------------------------------
-SLOTS = ["12h", "16h", "21h"]
+# Cinco pases al dia. Las horas salen de los picos medidos de Instagram: las
+# tardes (18-23 h) son la franja mas fuerte casi todos los dias, el mediodia
+# aguanta, y las 9 de la manana es el mejor hueco matinal del conjunto.
+SLOTS = ["09h", "12h", "16h", "19h", "21h"]
 
 
 def elegir(fecha, slot, variante="instagram"):
