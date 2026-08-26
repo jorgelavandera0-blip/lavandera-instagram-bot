@@ -21,16 +21,37 @@ name: Publicar en Instagram
 # ---------------------------------------------------------------------------
 on:
   schedule:
-    - cron: '0 8 * * *'
-    - cron: '0 9 * * *'
-    - cron: '0 11 * * *'
-    - cron: '0 12 * * *'
-    - cron: '0 15 * * *'
-    - cron: '0 16 * * *'
-    - cron: '0 18 * * *'
-    - cron: '0 19 * * *'
-    - cron: '0 20 * * *'
-    - cron: '0 21 * * *'
+    # Cada hora, en punto y siete, de 08:07 a 22:07 UTC.
+    #
+    # Dos cambios respecto a lo de antes, y los dos importan:
+    #
+    # 1) EL MINUTO. Antes todo salia en el minuto 0, que es el minuto mas
+    #    congestionado de GitHub Actions: todo el mundo programa sus cron ahi.
+    #    Los retrasos medidos en este repositorio entre el 24 y el 26 de agosto
+    #    de 2026 fueron de 15, 18, 19, 34, 35, 36, 39, 46 y 51 minutos. En el
+    #    minuto 7 hay mucha menos cola.
+    #
+    # 2) LA FRECUENCIA. Antes habia un solo disparo por pase: si ese se
+    #    retrasaba mas de una hora o GitHub se lo comia, el pase se perdia para
+    #    siempre. Ahora hay un disparo cada hora y pase.py sabe que pases se
+    #    deben, asi que el siguiente disparo recoge lo que el anterior no hizo.
+    #
+    # Un disparo que no toca dura unos 16 segundos, asi que sobran de sobra.
+    - cron: '7 8 * * *'
+    - cron: '7 9 * * *'
+    - cron: '7 10 * * *'
+    - cron: '7 11 * * *'
+    - cron: '7 12 * * *'
+    - cron: '7 13 * * *'
+    - cron: '7 14 * * *'
+    - cron: '7 15 * * *'
+    - cron: '7 16 * * *'
+    - cron: '7 17 * * *'
+    - cron: '7 18 * * *'
+    - cron: '7 19 * * *'
+    - cron: '7 20 * * *'
+    - cron: '7 21 * * *'
+    - cron: '7 22 * * *'
   workflow_dispatch:
     inputs:
       verify_only:
@@ -60,35 +81,14 @@ jobs:
       - name: Descargar el repositorio
         uses: actions/checkout@v4
 
-      - name: Comprobar si toca pase (hora real de Canarias)
+      - name: Decidir que pase toca
         id: pase
-        env:
-          ES_MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
-          SLOT_MANUAL: ${{ github.event.inputs.slot }}
         run: |
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import os
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-
-          manual = os.environ.get("ES_MANUAL") == "true"
-          ahora = datetime.now(ZoneInfo("Atlantic/Canary"))
-          slot = {9: "09h", 12: "12h", 16: "16h",
-                  19: "19h", 21: "21h"}.get(ahora.hour)
-
-          if manual:
-              print("seguir=si")
-              print(f"slot={os.environ.get('SLOT_MANUAL') or '12h'}")
-              print("motivo=lanzado a mano")
-          elif slot:
-              print("seguir=si")
-              print(f"slot={slot}")
-              print(f"motivo=toca el pase de las {ahora:%H:%M} de Canarias")
-          else:
-              print("seguir=no")
-              print("slot=")
-              print(f"motivo=en Canarias son las {ahora:%H:%M}; este disparo no toca")
-          PY
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python3 pase.py --manual "${{ github.event.inputs.slot }}"
+          else
+            python3 pase.py
+          fi
 
       - name: Decision
         run: echo "${{ steps.pase.outputs.motivo }}"
