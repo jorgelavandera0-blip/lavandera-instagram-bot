@@ -182,7 +182,15 @@ def elegir_lote(fecha, n):
         c = base + k
         proyecto, formato, tipo, apertura = elegidos[k]
 
-        gancho = g.GANCHOS[(c * 5 + 1) % len(g.GANCHOS)]
+        # Mismo criterio que en generar.elegir: dos de cada tres llevan el
+        # gancho escrito para el sector de ese negocio. Si el lote no usara los
+        # ganchos de sector, la tanda manual de 10 al dia saldria peor que la
+        # automatica, que es justo al reves de lo que queremos.
+        pool_sec = g.GANCHOS_SECTOR.get(proyecto["sector"])
+        if pool_sec and c % 3 != 0:
+            gancho = pool_sec[(c * 2 + 1) % len(pool_sec)]
+        else:
+            gancho = g.GANCHOS[(c * 5 + 1) % len(g.GANCHOS)]
         cta = g.CTAS[(c * 3) % len(g.CTAS)]
         remate = g.REMATES[(c * 5 + 2) % len(g.REMATES)]
         dato = g.DATOS[(c * 3 + 1) % len(g.DATOS)]

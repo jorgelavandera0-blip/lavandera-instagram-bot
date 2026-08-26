@@ -207,14 +207,90 @@ GANCHOS = [
     "El que está\na tu lado\nya la tiene.",
     "Tu cliente ya\nte ha juzgado.\nY no lo sabes.",
     "¿Cuánto tarda\ntu web en abrir?\nCuéntalo.",
+    # Anadidos el 26/08/2026 tras el radar de Canarias. Los tres salen de algo
+    # que hemos comprobado a mano en decenas de webs canarias reales: pies de
+    # pagina congelados en 2013-2021, dominios caidos que el duenno no sabe que
+    # estan caidos, y webs en aleman pero no en frances justo cuando el mercado
+    # frances es el que crece. Ninguno afirma una cifra: los tres preguntan.
+    "Mira el pie\nde tu web.\n¿Qué año pone?",
+    "¿Cuándo abriste\ntu web\npor última vez?",
+    "¿Tu web habla\nfrancés?",
 ]
+
+
+# Ganchos escritos para UN sector concreto. Salen del radar del 26/08/2026: cada
+# uno apunta a un fallo que hemos verificado a mano en negocios canarios reales
+# de ese sector (el boton de reservar que lleva a Booking, la carta sin precios,
+# el boton de comprar que no compra, la inmobiliaria que vende a un millon solo
+# en espannol). Un anuncio que le habla a TU sector para el scroll; uno generico
+# no. Todos son preguntas u ordenes: ninguno afirma un dato de terceros.
+#
+# Limite duro de forma: 16 caracteres por linea. La fuente del gancho es de 108 px
+# sobre un ancho util de 936 px. capa_gancho ademas encoge sola si algo se pasa,
+# pero mas vale escribirlo corto que depender del apanno.
+GANCHOS_SECTOR = {
+    "hotel rural": [
+        "¿Tu botón de\nreservar lleva\na Booking?",
+        "¿Cuánto se llevó\nBooking de ti\nel año pasado?",
+        "Son las 11.\n¿Puede alguien\nreservarte?",
+    ],
+    "villa vacacional": [
+        "¿Cuánto se llevó\nBooking de ti\nel año pasado?",
+        "¿Tu botón de\nreservar lleva\na Booking?",
+        "Son las 11.\n¿Puede alguien\nreservarte?",
+    ],
+    "restaurante": [
+        "Tu carta.\n¿Tiene precios?",
+        "Busca tu carta\nen Google.\n¿Qué sale?",
+        "¿Se reserva mesa\nen tu web\nun lunes?",
+    ],
+    "bodega": [
+        "¿Puedo comprar\ntu vino\nsin ir allí?",
+        "Tu botón\nde comprar.\n¿Lleva a algo?",
+    ],
+    "inmobiliaria": [
+        "¿En cuántos\nidiomas vendes\ntu casa?",
+        "Mira el pie\nde tu web.\n¿Qué año pone?",
+    ],
+    "medicina estética": [
+        "¿Se pide cita\nen tu web?\n¿O toca llamar?",
+        "Quiere pagarte\nahora mismo.\n¿Puede?",
+    ],
+    "spa y baños": [
+        "¿Se pide cita\nen tu web?\n¿O toca llamar?",
+        "Quiere pagarte\nahora mismo.\n¿Puede?",
+    ],
+    "centro de rendimiento": [
+        "Quiere pagarte\nahora mismo.\n¿Puede?",
+        "¿Se apunta\na una clase\ndesde el móvil?",
+    ],
+    "concesionario": [
+        "¿Tu stock está\nen tu web\no en Wallapop?",
+        "Mira el pie\nde tu web.\n¿Qué año pone?",
+    ],
+    "escuela de surf": [
+        "Te escribe hoy.\n¿Reserva hoy\no en tres días?",
+        "¿Se apunta\na una clase\ndesde el móvil?",
+    ],
+    "charter náutico": [
+        "Te escribe hoy.\n¿Reserva hoy\no en tres días?",
+        "¿Se reserva\nuna salida\nsin llamarte?",
+    ],
+    "reformas e interiorismo": [
+        "Tus obras.\n¿Dónde están\nlas fotos?",
+        "Mira el pie\nde tu web.\n¿Qué año pone?",
+    ],
+}
 
 # Las llamadas a la accion concretas rinden mas que las vagas: "pide tu demo"
 # no dice que recibes ni cuando. Estas cuatro dicen exactamente que pasa.
 CTAS = [
-    "Te digo qué falla en tu web",
-    "Te monto una pantalla gratis",
-    "Mándame tu web y te la reviso",
+    # Todas en primera del plural. Antes "Te digo qué falla" convivia con
+    # "Respondemos en menos de 24 h" en la misma tarjeta de cierre: el mismo
+    # cartel hablaba de yo y de nosotros a la vez y se notaba.
+    "Te decimos qué falla en tu web",
+    "Te montamos una pantalla gratis",
+    "Mándanos tu web y te la revisamos",
     "48 horas y ves tu web nueva",
 ]
 
@@ -366,9 +442,21 @@ def capa_gancho(gancho, proyecto):
     capa = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     d = ImageDraw.Draw(capa)
 
-    f = fuente(F_BOLD, 108)
-    tw, th = medir(d, gancho, f, spacing=14)
+    # Ya nos ha mordido dos veces un texto que se sale del cuadro (la firma del
+    # cierre y el logotipo del destello). Aqui no se vuelve a repetir: se busca
+    # el cuerpo mas grande que quepa de verdad en el ancho util y se para ahi.
     x, y = 72, 232
+    util = W - x * 2
+    tam = 108
+    while tam > 68:
+        f = fuente(F_BOLD, tam)
+        tw, th = medir(d, gancho, f, spacing=14)
+        if tw <= util:
+            break
+        tam -= 4
+    else:
+        f = fuente(F_BOLD, 68)
+        tw, th = medir(d, gancho, f, spacing=14)
 
     # El velo se dibuja a la medida del titular: solido mientras hay letras y
     # fundido a partir de ahi. Si no, con tres lineas se lee la web de debajo.
@@ -616,7 +704,16 @@ def elegir(fecha, slot, variante="instagram"):
 
     dg = 4 if variante == "tiktok" else 0
     dc = 2 if variante == "tiktok" else 0
-    gancho = GANCHOS[(dia * 3 + si * 5 + dg) % len(GANCHOS)]
+    # Dos de cada tres videos llevan un gancho escrito para el sector de ese
+    # negocio; el tercero, uno general. Asi la mayoria le habla directamente a
+    # quien queremos que pare, pero el feed no se vuelve monotono. La rotacion
+    # del sector va por su propio contador para que dos pases seguidos del mismo
+    # sector no repitan frase.
+    pool_sec = GANCHOS_SECTOR.get(proyecto["sector"])
+    if pool_sec and (dia + si + dv) % 3 != 0:
+        gancho = pool_sec[(dia * 2 + si * 3 + dg) % len(pool_sec)]
+    else:
+        gancho = GANCHOS[(dia * 3 + si * 5 + dg) % len(GANCHOS)]
     cta = CTAS[(dia * 3 + si * 2 + dc) % len(CTAS)]
     remate = REMATES[(dia * 5 + si * 3 + dc) % len(REMATES)]
     arranque = ((dia + si + dv) % 3) * 2.0
@@ -719,15 +816,27 @@ def capa_marco_acento(proyecto):
 # Datos NUESTROS, comprobables en lavanderadesign.com. No usamos estadisticas
 # de terceros: si lo decimos en un anuncio, tiene que ser algo que cumplimos.
 DATOS = [
+    # Regla: la cifra es SIEMPRE un dato nuestro y comprobable (lo que tardamos,
+    # lo que cobramos, lo que hemos hecho). Nunca una estadistica de terceros.
+    # La linea de debajo, en cambio, tiene que hablar de TI: es la mitad del
+    # cartel que decide si alguien sigue mirando medio segundo mas.
     ("24 h", "es lo que tardamos en contestarte"),
     ("0 €", "cuesta que te digamos qué falla en tu web"),
+    ("48 h", "y ves tu web nueva delante"),
     ("3 días", "es nuestro plazo de entrega más corto"),
     ("12", "sectores distintos diseñados desde cero"),
+    ("1", "pregunta: ¿tu web vende, o solo existe?"),
 ]
 
 SERIES = [
-    ["Sin plantillas", "Diseño propio", "Tuya de verdad"],
-    ["Se ve bien en el móvil", "Carga rápido", "Y además vende"],
+    # Las cuatro primeras le hablan a quien mira: dos son preguntas encadenadas,
+    # una es una orden que le hace levantarse a mirar su propia web y otra es una
+    # escena de tres tiempos que acaba mal. Las dos ultimas siguen siendo sobre
+    # nosotros, para que el feed no sea todo el rato el mismo tono.
+    ["¿Se ve en el móvil?", "¿Carga rápido?", "¿Y vende?"],
+    ["Mira tu web", "Baja hasta el pie", "¿Qué año pone?"],
+    ["Tu cliente entra", "No ve el precio", "Se va"],
+    ["¿Se puede reservar?", "¿Se puede pagar?", "¿O hay que llamar?"],
     ["Web a medida", "Tienda y reservas", "SEO y automatización"],
     ["Lo diseñamos", "Lo programamos", "Lo mantenemos"],
 ]
