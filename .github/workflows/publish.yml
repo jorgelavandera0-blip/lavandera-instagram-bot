@@ -6,10 +6,13 @@ name: Publicar en Instagram
 # (UTC+1 en verano, UTC+0 en invierno). Para no tener que tocar nada en
 # octubre y en marzo se programan los DOS horarios posibles de cada pase, y
 # despues el propio job mira la hora real de Canarias y se detiene si no toca.
-# Asi los pases caen siempre a las 12:00, 16:00 y 21:00 hora de Canarias.
+# Asi los pases caen siempre a las 09:00, 12:00, 16:00, 19:00 y 21:00 de
+# Canarias. Cinco al dia.
 #
+#   Pase 09:00 Canarias -> 08:00 UTC (verano) / 09:00 UTC (invierno)
 #   Pase 12:00 Canarias -> 11:00 UTC (verano) / 12:00 UTC (invierno)
 #   Pase 16:00 Canarias -> 15:00 UTC (verano) / 16:00 UTC (invierno)
+#   Pase 19:00 Canarias -> 18:00 UTC (verano) / 19:00 UTC (invierno)
 #   Pase 21:00 Canarias -> 20:00 UTC (verano) / 21:00 UTC (invierno)
 #
 # ORDEN IMPORTANTE: el video se sube a GitHub ANTES de publicarlo, porque
@@ -18,10 +21,14 @@ name: Publicar en Instagram
 # ---------------------------------------------------------------------------
 on:
   schedule:
+    - cron: '0 8 * * *'
+    - cron: '0 9 * * *'
     - cron: '0 11 * * *'
     - cron: '0 12 * * *'
     - cron: '0 15 * * *'
     - cron: '0 16 * * *'
+    - cron: '0 18 * * *'
+    - cron: '0 19 * * *'
     - cron: '0 20 * * *'
     - cron: '0 21 * * *'
   workflow_dispatch:
@@ -33,7 +40,7 @@ on:
       slot:
         description: 'Pase a generar cuando se lanza a mano'
         type: choice
-        options: ['12h', '16h', '21h']
+        options: ['09h', '12h', '16h', '19h', '21h']
         default: '12h'
       forzar:
         description: 'Generar un video aunque ya haya cola'
@@ -66,7 +73,8 @@ jobs:
 
           manual = os.environ.get("ES_MANUAL") == "true"
           ahora = datetime.now(ZoneInfo("Atlantic/Canary"))
-          slot = {12: "12h", 16: "16h", 21: "21h"}.get(ahora.hour)
+          slot = {9: "09h", 12: "12h", 16: "16h",
+                  19: "19h", 21: "21h"}.get(ahora.hour)
 
           if manual:
               print("seguir=si")
@@ -125,7 +133,7 @@ jobs:
         run: |
           git config user.name "lavandera-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add -A posts.json videos tiktok.json tiktok fuentes
+          git add -A posts.json videos fuentes
           if git diff --cached --quiet; then
             echo "Sin cambios que subir (la cola ya tenia video)."
           else
@@ -154,7 +162,7 @@ jobs:
         run: |
           git config user.name "lavandera-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add -A posts.json videos tiktok.json tiktok fuentes
+          git add -A posts.json videos fuentes
           git commit -m "Pase ${{ steps.pase.outputs.slot }}: marcado como publicado" || echo "Sin cambios"
           git pull --rebase --autostash || true
           git push
