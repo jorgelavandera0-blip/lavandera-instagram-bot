@@ -728,6 +728,32 @@ def elegir(fecha, slot, variante="instagram"):
     return proyecto, formato, gancho, cta, remate, arranque, tipo, dato, serie
 
 
+# La pregunta del pie de texto. Va en TODOS los reels, de Instagram y de TikTok,
+# y es del sector del negocio que sale en el video. Sirve para dos cosas: que el
+# texto diga lo mismo que el gancho (si el video pregunta una cosa y el pie dice
+# otra, el reel se lee como un anuncio y se pasa de largo) y para pedir un
+# comentario, que es lo unico que de verdad mueve el alcance.
+#
+# Salen del radar de Canarias del 26/08/2026: cada una apunta a un fallo que
+# hemos comprobado a mano en negocios canarios reales de ese sector. Ninguna
+# afirma una cifra de terceros: todas preguntan.
+PREGUNTAS_SECTOR = {
+    "hotel rural": "¿Cuánto se llevó Booking de ti el año pasado? Dilo en un comentario.",
+    "villa vacacional": "¿Cuánto se llevó Booking de ti el año pasado? Dilo en un comentario.",
+    "restaurante": "Abre tu carta en el móvil. ¿Se ven los precios? Cuéntamelo abajo.",
+    "bodega": "¿Se puede comprar tu vino sin ir a la bodega? Contesta en un comentario.",
+    "inmobiliaria": "¿En cuántos idiomas está tu web? Dímelo abajo.",
+    "medicina estética": "¿Se puede pedir cita en tu web, o hay que llamar? Cuéntamelo.",
+    "spa y baños": "¿Se puede reservar en tu web, o hay que llamar? Cuéntamelo abajo.",
+    "centro de rendimiento": "¿Se apunta alguien a una clase desde el móvil? Dímelo abajo.",
+    "concesionario": "¿Tu stock está en tu web o en Wallapop? Contesta en un comentario.",
+    "escuela de surf": "¿Cuánto tardas en contestar a quien te escribe? Dilo abajo.",
+    "charter náutico": "¿Se puede reservar una salida sin llamarte? Cuéntamelo abajo.",
+    "reformas e interiorismo": "¿Dónde están las fotos de tus obras? Ponme el enlace abajo.",
+    "nuestro estudio": "Abre tu web y baja hasta el pie. ¿Qué año pone? Dilo abajo.",
+}
+
+
 def construir_caption(proyecto, cta, remate, variante="instagram"):
     if proyecto["tipo"] == "cliente":
         linea_proy = (f"{proyecto['nombre']} ({proyecto['sector']}) es un encargo real "
@@ -746,6 +772,7 @@ def construir_caption(proyecto, cta, remate, variante="instagram"):
         f"Qué hacemos: webs a medida sin plantillas, tiendas online y sistemas de "
         f"reservas, chatbots y automatizaciones con IA, SEO y paneles internos.\n\n"
         f"{remate.rstrip(chr(46))}.\n\n"
+        f"{PREGUNTAS_SECTOR.get(proyecto['sector'], 'Abre tu web y baja hasta el pie. ¿Qué año pone? Dilo abajo.')}\n\n"
         f"Entra en {DOMINIO} y te decimos gratis qué le falta a tu web. "
         f"El enlace también está en la bio.\n\n"
         f"{HASHTAGS_TIKTOK if variante == 'tiktok' else HASHTAGS}"
